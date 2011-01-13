@@ -1,0 +1,27 @@
+<RCC>
+    <qresource prefix="/">
+        <file>images/go-next-22x22.png</file>
+        <file>images/go-previous-22x22.png</file>
+        <file>images/go-next-16x16.png</file>
+        <file>images/go-previous-16x16.png</file>
+        <file>images/download-16x16.png</file>
+        <file>images/download-22x22.png</file>
+        <file>images/quit-16x16.png</file>
+        <file>images/preferences-16x16.png</file>
+        <file>images/multimedia-22x22.png</file>
+        <file>images/multimedia-16x16.png</file>
+        <file>images/refresh-16x16.png</file>
+        <file>images/refresh-22x22.png</file>
+        <file>images/load-32x32.gif</file>
+        <file>images/find-22x22.png</file>
+        <file>images/tvkaista-16x16.png</file>
+        <file>images/tvkaista-32x32.png</file>
+        <file>images/tvkaista-48x48.png</file>
+        <file>images/tvkaista-64x64.png</file>
+        <file>images/list-22x22.png</file>
+        <file>images/play-22x22.png</file>
+        <file>images/remove-22x22.png</file>
+        <file>images/stop-22x22.png</file>
+        <file>images/today-16x16.png</file>
+    </qresource>
+</RCC>
