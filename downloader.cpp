@@ -187,10 +187,8 @@ void Downloader::appendSuffixToFilenameAndCreateDir()
     }
 
     QDir dir = fileInfo.dir();
-    qDebug() << dir.path();
 
     if (!dir.exists()) {
-        qDebug() << dir.path();
         dir.mkpath(dir.path());
     }
 }
