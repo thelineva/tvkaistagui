@@ -100,6 +100,9 @@ void ProgrammeTableModel::setFormat(int format)
         m_flagMask = 0x01;
     }
     else if (format == 1) {
+        m_flagMask = 0x02;
+    }
+    else if (format == 2) {
         m_flagMask = 0x04;
     }
     else {

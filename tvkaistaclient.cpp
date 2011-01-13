@@ -157,6 +157,10 @@ void TvkaistaClient::sendStreamRequest(const Programme &programme)
         break;
 
     case 1:
+        urlString.append("4/1000000/");
+        break;
+
+    case 2:
         urlString.append("3/2000000/");
         break;
 

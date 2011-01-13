@@ -79,8 +79,11 @@ int DownloadTableModel::download(const Programme &programme, int format, const Q
 
     QString extension = "ts";
 
-    if (format == 0 || format == 1) {
+    if (format == 0 || format == 2) {
         extension = "mp4";
+    }
+    else if (format == 1) {
+        extension = "flv";
     }
 
     if (filenameFormat.isEmpty()) {

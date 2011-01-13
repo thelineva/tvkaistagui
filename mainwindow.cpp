@@ -82,7 +82,7 @@ MainWindow::MainWindow(QWidget *parent) :
     painter.end();
 
     QStringList formats;
-    formats << "300 kbps MP4" << "2 Mbps MP4" << "8 Mbps TS";
+    formats << "300 kbps MP4" << "1 Mbps Flash" << "2 Mbps MP4" << "8 Mbps TS";
     m_formatComboBox->addItems(formats);
 
     connect(ui->calendarWidget, SIGNAL(clicked(QDate)), SLOT(dateClicked(QDate)));
@@ -404,6 +404,15 @@ void MainWindow::goToNextDay()
 void MainWindow::watchProgramme()
 {
     if (m_currentProgramme.id < 0) {
+        streamNotFound();
+        return;
+    }
+
+    if (m_formatComboBox->currentIndex() == 1) { /* Flash-video */
+        QString urlString = QString("http://www.tvkaista.fi/recordings/play/%1/4/1000000/")
+                            .arg(m_currentProgramme.id);
+
+        startFlashStream(QUrl(urlString));
         return;
     }
 
@@ -415,6 +424,7 @@ void MainWindow::watchProgramme()
 void MainWindow::downloadProgramme()
 {
     if (m_currentProgramme.id < 0) {
+        streamNotFound();
         return;
     }
 
@@ -964,6 +974,37 @@ void MainWindow::startStream(const QUrl &url)
 
     if (command.isEmpty()) {
         command = defaultStreamPlayerCommand();
+    }
+
+    QString urlString = url.toString();
+    QStringList args = splitCommandLine(command);
+    int count = args.size();
+
+    for (int i = 0; i < count; i++) {
+        QString arg = args.at(i);
+        arg = arg.replace("%F", urlString);
+        args.replace(i, arg);
+    }
+
+    startMediaPlayer(args);
+}
+
+void MainWindow::startFlashStream(const QUrl &url)
+{
+    m_settings.beginGroup("mediaPlayer");
+    QString command = m_settings.value("flash").toString();
+    m_settings.endGroup();
+
+    if (command.isEmpty()) {
+        if (!QDesktopServices::openUrl(url)) {
+            QMessageBox msgBox(this);
+            msgBox.setWindowTitle(windowTitle());
+            msgBox.setText(trUtf8("Web-selaimen avaaminen epäonnistui."));
+            msgBox.setIcon(QMessageBox::Information);
+            msgBox.exec();
+        }
+
+        return;
     }
 
     QString urlString = url.toString();

@@ -119,6 +119,7 @@ void SettingsDialog::loadSettings()
     m_settings->beginGroup("mediaPlayer");
     QString streamCommand = m_settings->value("stream").toString();
     QString fileCommand = m_settings->value("file").toString();
+    QString flashCommand = m_settings->value("flash").toString();
     m_settings->endGroup();
 
     if (dir.isEmpty()) {
@@ -138,6 +139,7 @@ void SettingsDialog::loadSettings()
 
     ui->streamPlayerLineEdit->setText(streamCommand);
     ui->filePlayerLineEdit->setText(fileCommand);
+    ui->flashPlayerLineEdit->setText(flashCommand);
 }
 
 void SettingsDialog::saveSettings()
@@ -176,5 +178,6 @@ void SettingsDialog::saveSettings()
     m_settings->beginGroup("mediaPlayer");
     m_settings->setValue("stream", ui->streamPlayerLineEdit->text());
     m_settings->setValue("file", ui->filePlayerLineEdit->text());
+    m_settings->setValue("flash", ui->flashPlayerLineEdit->text());
     m_settings->endGroup();
 }

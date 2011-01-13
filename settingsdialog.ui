@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>470</width>
-    <height>403</height>
+    <height>459</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,7 +17,7 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>2</number>
      </property>
      <widget class="QWidget" name="tvkaistaTab">
       <attribute name="title">
@@ -239,7 +239,7 @@
           <item row="1" column="0">
            <widget class="QLabel" name="filePlayerLabel">
             <property name="text">
-             <string>&amp;Tiedosto</string>
+             <string>Video&amp;tiedosto</string>
             </property>
             <property name="buddy">
              <cstring>filePlayerLineEdit</cstring>
@@ -248,6 +248,19 @@
           </item>
           <item row="1" column="1">
            <widget class="QLineEdit" name="filePlayerLineEdit"/>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="flashPlayerLabel">
+            <property name="text">
+             <string>&amp;Web-selain</string>
+            </property>
+            <property name="buddy">
+             <cstring>flashPlayerLineEdit</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QLineEdit" name="flashPlayerLineEdit"/>
           </item>
          </layout>
         </widget>
@@ -314,7 +327,7 @@
               </property>
              </widget>
             </item>
-            <item row="1" column="0">
+            <item row="2" column="0">
              <widget class="QLabel" name="label_2">
               <property name="text">
                <string>%d.%m.%Y</string>
@@ -324,14 +337,14 @@
               </property>
              </widget>
             </item>
-            <item row="1" column="1">
+            <item row="2" column="1">
              <widget class="QLabel" name="label_5">
               <property name="text">
                <string>= päivämäärä</string>
               </property>
              </widget>
             </item>
-            <item row="2" column="0">
+            <item row="3" column="0">
              <widget class="QLabel" name="label_3">
               <property name="text">
                <string>%H.%M</string>
@@ -341,14 +354,14 @@
               </property>
              </widget>
             </item>
-            <item row="2" column="1">
+            <item row="3" column="1">
              <widget class="QLabel" name="label_6">
               <property name="text">
                <string>= aika</string>
               </property>
              </widget>
             </item>
-            <item row="3" column="0">
+            <item row="4" column="0">
              <widget class="QLabel" name="label_7">
               <property name="text">
                <string>%e</string>
@@ -358,10 +371,27 @@
               </property>
              </widget>
             </item>
-            <item row="3" column="1">
+            <item row="4" column="1">
              <widget class="QLabel" name="label_8">
               <property name="text">
                <string>= tarkenne (mp4, ts)</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QLabel" name="label_10">
+              <property name="text">
+               <string>%C</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QLabel" name="label_11">
+              <property name="text">
+               <string>= kanavan nimi</string>
               </property>
              </widget>
             </item>

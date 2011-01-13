@@ -87,6 +87,7 @@ private:
     void stopLoadingAnimation();
     void addBorderToPoster();
     void startStream(const QUrl &url);
+    void startFlashStream(const QUrl &url);
     void startFile(const QString &filename);
     void startMediaPlayer(QStringList args);
     QStringList splitCommandLine(const QString &command);
