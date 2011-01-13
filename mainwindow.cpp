@@ -644,7 +644,8 @@ void MainWindow::streamUrlFetched(const Programme &programme, int format, const 
     stopLoadingAnimation();
 
     if (m_downloading) {
-        int row = m_downloadTableModel->download(programme, format, url);
+        int row = m_downloadTableModel->download(
+                programme, format, m_channelMap.value(programme.channelId), url);
         ui->downloadsTableView->scrollTo(m_downloadTableModel->index(row, 0, QModelIndex()));
     }
     else {
@@ -833,10 +834,12 @@ void MainWindow::updateFontSize()
 void MainWindow::updateChannelList()
 {
     ui->channelListWidget->clear();
+    m_channelMap.clear();
     int count = m_channels.size();
 
     for (int i = 0; i < count; i++) {
         Channel channel = m_channels.at(i);
+        m_channelMap.insert(channel.id, channel.name);
         new QListWidgetItem(channel.name, ui->channelListWidget);
     }
 }
@@ -846,24 +849,10 @@ void MainWindow::updateDescription()
     QString html("<p><b>");
     html.append(Qt::escape(m_currentProgramme.title));
     html.append("</b> ");
-
-    QString channelName;
-    int count = m_channels.size();
-
-    for (int i = 0; i < count; i++) {
-        Channel channel = m_channels.at(i);
-
-        if (channel.id == m_currentProgramme.channelId) {
-            channelName = channel.name;
-            break;
-        }
-    }
-
     html.append(trUtf8("%1 kanavalta %2").arg(
             m_currentProgramme.startDateTime.toString(trUtf8("ddd d.M.yyyy 'klo' h.mm")),
-            channelName));
+            m_channelMap.value(m_currentProgramme.channelId)));
     html.append("</p>");
-
     html.append("</p><p>");
     html.append(Qt::escape(m_currentProgramme.description));
     html.append("</p>");

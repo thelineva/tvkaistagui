@@ -38,7 +38,7 @@ private slots:
 
 private:
     QString networkErrorString(QNetworkReply::NetworkError error);
-    void appendSuffixToFilename();
+    void appendSuffixToFilenameAndCreateDir();
     QNetworkAccessManager *m_networkAccessManager;
     QNetworkReply *m_reply;
     char *m_buf;

@@ -30,7 +30,7 @@ public:
     QVariant data(const QModelIndex &index, int role) const;
     QVariant headerData(int section, Qt::Orientation orientation, int role) const;
     Qt::ItemFlags flags(const QModelIndex &index) const;
-    int download(const Programme &programme, int format, const QUrl &url);
+    int download(const Programme &programme, int format, const QString &channelName, const QUrl &url);
     void abortDownload(int index);
     void abortAllDownloads();
     bool hasUnfinishedDownloads() const;

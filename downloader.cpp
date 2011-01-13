@@ -96,7 +96,7 @@ void Downloader::replyReadyRead()
             m_filename = QFileInfo(QFileInfo(m_filename).dir(), dispositionHeader.mid(17)).filePath();
         }
 
-        appendSuffixToFilename();
+        appendSuffixToFilenameAndCreateDir();
         qDebug() << "WRITE" << m_filename;
         m_file.setFileName(m_filename);
 
@@ -168,14 +168,9 @@ QString Downloader::networkErrorString(QNetworkReply::NetworkError error)
     }
 }
 
-void Downloader::appendSuffixToFilename()
+void Downloader::appendSuffixToFilenameAndCreateDir()
 {
     QFileInfo fileInfo(m_filename);
-
-    if (!fileInfo.exists()) {
-        return;
-    }
-
     QString suffix = fileInfo.suffix();
 
     if (!suffix.isEmpty()) {
@@ -189,5 +184,13 @@ void Downloader::appendSuffixToFilename()
         number++;
         m_filename = QString("%1-%2%3").arg(prefix).arg(number).arg(suffix);
         fileInfo = QFileInfo(m_filename);
+    }
+
+    QDir dir = fileInfo.dir();
+    qDebug() << dir.path();
+
+    if (!dir.exists()) {
+        qDebug() << dir.path();
+        dir.mkpath(dir.path());
     }
 }

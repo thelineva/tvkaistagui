@@ -65,7 +65,7 @@ Qt::ItemFlags DownloadTableModel::flags(const QModelIndex &index) const
     return Qt::ItemIsSelectable | Qt::ItemIsEnabled;
 }
 
-int DownloadTableModel::download(const Programme &programme, int format, const QUrl &url)
+int DownloadTableModel::download(const Programme &programme, int format, const QString &channelName, const QUrl &url)
 {
     m_settings->beginGroup("downloads");
     QString dirPath = m_settings->value("directory").toString();
@@ -88,8 +88,10 @@ int DownloadTableModel::download(const Programme &programme, int format, const Q
         filenameFormat = MainWindow::defaultFilenameFormat();
     }
 
-    filenameFormat.replace("%A", programme.title);
+    filenameFormat.replace("%A", removeInvalidCharacters(programme.title));
     filenameFormat.replace("%a", toAscii(programme.title));
+    filenameFormat.replace("%C", removeInvalidCharacters(channelName));
+    filenameFormat.replace("%c", toAscii(channelName));
     filenameFormat.replace("%d", programme.startDateTime.toString("dd"));
     filenameFormat.replace("%m", programme.startDateTime.toString("MM"));
     filenameFormat.replace("%Y", programme.startDateTime.toString("yyyy"));
@@ -97,7 +99,6 @@ int DownloadTableModel::download(const Programme &programme, int format, const Q
     filenameFormat.replace("%M", programme.startDateTime.toString("mm"));
     filenameFormat.replace("%S", programme.startDateTime.toString("ss"));
     filenameFormat.replace("%e", extension);
-    filenameFormat = removeInvalidCharacters(filenameFormat);
 
     Downloader *downloader = new Downloader(this);
     downloader->setFilename(QFileInfo(QString("%1/%2").arg(dirPath, filenameFormat)).absoluteFilePath());

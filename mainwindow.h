@@ -102,6 +102,7 @@ private:
     Cache *m_cache;
     SettingsDialog *m_settingsDialog;
     QList<Channel> m_channels;
+    QMap<int, QString> m_channelMap;
     QList<Programme> m_searchResults;
     QStringList m_searchHistory;
     QString m_searchPhrase;
