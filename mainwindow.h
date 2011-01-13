@@ -62,6 +62,7 @@ private slots:
     void search();
     void toggleSearchResults();
     void toggleDownloadsDockWidget();
+    void toggleShortcutsDockWidget();
     void selectChannel(int index);
     void channelsFetched(const QList<Channel> &channels);
     void programmesFetched(int channelId, const QDate &date, const QList<Programme> &programmes);

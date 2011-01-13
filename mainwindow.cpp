@@ -87,13 +87,14 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(ui->calendarWidget, SIGNAL(clicked(QDate)), SLOT(dateClicked(QDate)));
     connect(ui->calendarWidget, SIGNAL(activated(QDate)), SLOT(dateClicked(QDate)));
-    connect(ui->downloadsTableView, SIGNAL(doubleClicked(QModelIndex)), SLOT(playDownloadedFile()));
+    connect(ui->downloadsTableView, SIGNAL(activated(QModelIndex)), SLOT(playDownloadedFile()));
     connect(ui->downloadsTableView->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)), SLOT(downloadSelectionChanged()));
     connect(ui->programmeTableView->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)), SLOT(programmeSelectionChanged()));
     connect(ui->programmeTableView, SIGNAL(activated(QModelIndex)), SLOT(programmeDoubleClicked()));
     connect(ui->channelListWidget, SIGNAL(currentRowChanged(int)), SLOT(channelClicked(int)));
     connect(ui->actionQuit, SIGNAL(triggered()), SLOT(close()));
     connect(ui->actionDownloads, SIGNAL(triggered()), SLOT(toggleDownloadsDockWidget()));
+    connect(ui->actionShortcuts, SIGNAL(triggered()), SLOT(toggleShortcutsDockWidget()));
     connect(ui->actionRefresh, SIGNAL(triggered()), SLOT(refreshProgrammes()));
     connect(ui->actionRefreshButton, SIGNAL(triggered()), SLOT(refreshProgrammes()));
     connect(ui->actionCurrentDay, SIGNAL(triggered()), SLOT(goToCurrentDay()));
@@ -143,6 +144,11 @@ MainWindow::MainWindow(QWidget *parent) :
     addAction(action);
 
     action = new QAction(this);
+    action->setShortcut(Qt::Key_F5);
+    connect(action, SIGNAL(triggered()), ui->downloadsTableView, SLOT(setFocus()));
+    addAction(action);
+
+    action = new QAction(this);
     action->setShortcut(Qt::Key_F6);
     connect(action, SIGNAL(triggered()), m_searchComboBox, SLOT(setFocus()));
     addAction(action);
@@ -183,7 +189,10 @@ MainWindow::MainWindow(QWidget *parent) :
 
     m_settings.beginGroup("mainWindow");
     restoreGeometry(m_settings.value("geometry").toByteArray());
-    restoreState(m_settings.value("state").toByteArray());
+
+    if (!restoreState(m_settings.value("state").toByteArray())) {
+        ui->shortcutsDockWidget->setVisible(false);
+    }
 
     if (!ui->splitter->restoreState(m_settings.value("splitter").toByteArray())) {
         ui->splitter->setSizes(QList<int>() << 450 << 150);
@@ -219,6 +228,13 @@ MainWindow::MainWindow(QWidget *parent) :
     }
 
     m_downloadTableModel->load();
+    int downloadCount = m_downloadTableModel->rowCount(QModelIndex());
+
+    if (downloadCount > 0) {
+        ui->downloadsTableView->scrollToBottom();
+        ui->downloadsTableView->selectRow(downloadCount - 1);
+    }
+
     downloadSelectionChanged();
 
     if (!m_client->isValidUsernameAndPassword()) {
@@ -565,6 +581,11 @@ void MainWindow::toggleDownloadsDockWidget()
     ui->downloadsDockWidget->setVisible(!ui->downloadsDockWidget->isVisible());
 }
 
+void MainWindow::toggleShortcutsDockWidget()
+{
+    ui->shortcutsDockWidget->setVisible(!ui->shortcutsDockWidget->isVisible());
+}
+
 void MainWindow::selectChannel(int index)
 {
     if (index < 0 || index >= m_channels.size()) {
@@ -787,6 +808,26 @@ void MainWindow::updateFontSize()
 
     int lineHeight = ui->downloadsTableView->fontMetrics().height() * 2 + 23;
     ui->downloadsTableView->verticalHeader()->setDefaultSectionSize(lineHeight);
+
+    QLabel* labels1[] = {ui->sh1Label, ui->sh2Label, ui->sh3Label, ui->sh4Label, ui->sh5Label,
+                        ui->sh11Label, ui->sh12Label, ui->sh13Label, ui->sh14Label};
+
+    QLabel* labels2[] = {ui->sh6Label, ui->sh7Label, ui->sh8Label, ui->sh9Label, ui->sh10Label,
+                         ui->sh15Label, ui->sh16Label, ui->sh17Label, ui->sh18Label};
+
+    font = ui->sh1Label->font();
+    font.setPointSize(size);
+
+    for (int i = 0; i < 8; i++) {
+        labels1[i]->setFont(font);
+    }
+
+    font = ui->sh6Label->font();
+    font.setPointSize(size);
+
+    for (int i = 0; i < 8; i++) {
+        labels2[i]->setFont(font);
+    }
 }
 
 void MainWindow::updateChannelList()
