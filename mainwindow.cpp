@@ -881,10 +881,33 @@ void MainWindow::updateTitleAndCalendar()
     QDate currentDate = QDate::currentDate();
 
     if (m_formattedDate != currentDate) {
-        QTextCharFormat currentDateFormat;
-        currentDateFormat.setForeground(Qt::blue);
-        currentDateFormat.setFontWeight(QFont::Bold);
-        ui->calendarWidget->setDateTextFormat(currentDate, currentDateFormat);
+        /* Poistetaan muotoilut */
+        ui->calendarWidget->setDateTextFormat(QDate(), QTextCharFormat());
+
+        /* Väritetään neljä edellistä viikkoa */
+        QTextCharFormat textFormat;
+        QDate date = currentDate;
+        textFormat.setBackground(QColor(227, 246, 206));
+
+        for (int i = 0; i < 4 * 7; i++) {
+            date = date.addDays(-1);
+            ui->calendarWidget->setDateTextFormat(date, textFormat);
+        }
+
+        /* Väritetään seuraava viikko */
+        date = currentDate;
+        textFormat.setBackground(QColor(246, 206, 206));
+
+        for (int i = 0; i < 7; i++) {
+            date = date.addDays(1);
+            ui->calendarWidget->setDateTextFormat(date, textFormat);
+        }
+
+        /* Väritetään kuluva päivä */
+        textFormat.setBackground(QColor(172, 250, 88));
+        textFormat.setFontWeight(QFont::Bold);
+        ui->calendarWidget->setDateTextFormat(currentDate, textFormat);
+
         m_formattedDate = currentDate;
     }
 }
