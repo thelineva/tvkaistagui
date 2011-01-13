@@ -263,6 +263,11 @@ void TvkaistaClient::programmeRequestFinished()
 
         for (int i = 0; i < 7; i++) {
             QList<Programme> programmes = m_programmeTableParser->programmes(i);
+
+            if (programmes.isEmpty()) {
+                continue;
+            }
+
             QDateTime expireDateTime;
 
             if (m_programmeTableParser->date(i) == today) {

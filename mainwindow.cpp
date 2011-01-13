@@ -730,6 +730,10 @@ void MainWindow::fetchProgrammes(int channelId, const QDate &date, bool refresh)
     int age;
     QList<Programme> programmes = m_cache->loadProgrammes(channelId, date, ok, age);
 
+    if (programmes.isEmpty()) {
+        ok = false;
+    }
+
     if (ok && (!refresh || age < 30)) {
         m_currentChannelId = channelId;
         m_currentDate = date;
