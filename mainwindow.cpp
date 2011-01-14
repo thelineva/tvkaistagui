@@ -1193,7 +1193,8 @@ QString MainWindow::defaultStreamPlayerCommand()
     QStringList paths;
     paths << "/usr/bin/vlc"
           << "C:/Program Files/VideoLAN/VLC/vlc.exe"
-          << "C:/Program Files (x86)/VideoLAN/VLC/vlc.exe";
+          << "C:/Program Files (x86)/VideoLAN/VLC/vlc.exe"
+          << "/Applications/VLC.app/Contents/MacOS/VLC";
 
     QString path = "vlc";
 
