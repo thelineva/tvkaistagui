@@ -49,6 +49,6 @@ FORMS += mainwindow.ui \
 RESOURCES += images.qrc
 RC_FILE = tvkaista.rc
 TRANSLATIONS = translations/qt_fi.ts
-VERSION = 1.0.1
+VERSION = 1.1.0
 DEFINES += APP_VERSION=\\\"$$VERSION\\\"
 unix:DEFINES += TVKAISTAGUI_TRANSLATIONS_DIR=\\\"/usr/share/tvkaistagui/translations\\\"
