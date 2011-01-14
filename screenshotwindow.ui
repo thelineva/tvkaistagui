@@ -112,6 +112,7 @@
     <bool>false</bool>
    </attribute>
    <addaction name="actionClose"/>
+   <addaction name="actionStop"/>
    <addaction name="separator"/>
   </widget>
   <action name="actionClose">
@@ -121,6 +122,21 @@
    </property>
    <property name="text">
     <string>Sulje</string>
+   </property>
+   <property name="toolTip">
+    <string>Sulje ikkuna</string>
+   </property>
+  </action>
+  <action name="actionStop">
+   <property name="icon">
+    <iconset resource="images.qrc">
+     <normaloff>:/images/stop-22x22.png</normaloff>:/images/stop-22x22.png</iconset>
+   </property>
+   <property name="text">
+    <string>Pysäytä</string>
+   </property>
+   <property name="toolTip">
+    <string>Pysäytä kuvien lataaminen</string>
    </property>
   </action>
  </widget>

@@ -34,9 +34,11 @@ ScreenshotWindow::ScreenshotWindow(QSettings *settings, QWidget *parent) :
     ui->toolBar->addWidget(spacerLabel);
     ui->toolBar->addWidget(m_loadLabel);
 
+    ui->actionStop->setEnabled(false);
     ui->frame->setBackgroundRole(QPalette::Base);
 
     connect(ui->actionClose, SIGNAL(triggered()), SLOT(close()));
+    connect(ui->actionStop, SIGNAL(triggered()), SLOT(stopDownloading()));
     connect(m_numScreenshotsComboBox, SIGNAL(currentIndexChanged(int)), SLOT(numScreenshotsChanged()));
 
     settings->beginGroup("screenshotWindow");
@@ -107,13 +109,28 @@ void ScreenshotWindow::fetchScreenshots(const Programme &programme)
 {
     m_programme = programme;
     ui->listWidget->clear();
+    ui->actionStop->setEnabled(true);
     ui->statusLabel->setText(trUtf8("Haetaan kuvakaappauksia..."));
     ui->stackedWidget->setCurrentIndex(1);
-    setWindowTitle(trUtf8("Kuvakaappaukset - %1").arg(programme.title));
+    setWindowTitle(trUtf8("Kuvakaappaukset - %1 %2").arg(programme.title).arg(
+            programme.startDateTime.toString(trUtf8("ddd d.M.yyyy 'klo' h.mm"))));
     startLoadingAnimation();
     m_reply = m_client->sendDetailedFeedRequest(programme);
     connect(m_reply, SIGNAL(error(QNetworkReply::NetworkError)), SLOT(networkError(QNetworkReply::NetworkError)));
     connect(m_reply, SIGNAL(finished()), SLOT(feedRequestFinished()));
+}
+
+void ScreenshotWindow::stopDownloading()
+{
+    m_queue.clear();
+
+    if (m_reply != 0) {
+        m_reply->abort();
+        m_reply = 0;
+    }
+
+    stopLoadingAnimation();
+    ui->statusLabel->setText(QString());
 }
 
 void ScreenshotWindow::numScreenshotsChanged()
@@ -127,6 +144,10 @@ void ScreenshotWindow::numScreenshotsChanged()
 
 void ScreenshotWindow::feedRequestFinished()
 {
+    if (m_reply == 0) {
+        return;
+    }
+
     ProgrammeFeedParser parser;
 
     if (!parser.parse(m_reply)) {
@@ -135,8 +156,14 @@ void ScreenshotWindow::feedRequestFinished()
 
     m_thumbnails = parser.thumbnails();
     m_reply->deleteLater();
-    thumbnailsToQueue();
-    fetchNextScreenshot();
+
+    if (m_thumbnails.isEmpty()) {
+        screenshotsNotFound();
+    }
+    else {
+        thumbnailsToQueue();
+        fetchNextScreenshot();
+    }
 }
 
 void ScreenshotWindow::thumbnailsToQueue()
@@ -155,10 +182,11 @@ void ScreenshotWindow::thumbnailsToQueue()
         step = qMax(1, count / numScreenshots);
     }
 
-    int remaining = numScreenshots - 1;
+    int remaining = numScreenshots;
 
     for (int i = 0; i < count - 1 && remaining > 0; i += step) {
         m_queue.append(m_thumbnails.at(i));
+        remaining--;
     }
 
     if (count > 1) {
@@ -168,6 +196,10 @@ void ScreenshotWindow::thumbnailsToQueue()
 
 void ScreenshotWindow::thumbnailRequestFinished()
 {
+    if (m_reply == 0 || m_queue.isEmpty()) {
+        return;
+    }
+
     if (m_reply->attribute(QNetworkRequest::HttpStatusCodeAttribute) == 303) {
         m_redirections++;
 
@@ -207,6 +239,11 @@ void ScreenshotWindow::thumbnailRequestFinished()
 
 void ScreenshotWindow::networkError(QNetworkReply::NetworkError error)
 {
+    if (m_thumbnails.isEmpty() && error == QNetworkReply::ContentNotFoundError) {
+        screenshotsNotFound();
+        return;
+    }
+
     QString errorString = TvkaistaClient::networkErrorString(error);
     qWarning() << errorString;
     ui->statusLabel->setText(trUtf8("Virhe: %1").arg(errorString));
@@ -215,6 +252,7 @@ void ScreenshotWindow::networkError(QNetworkReply::NetworkError error)
 void ScreenshotWindow::fetchNextScreenshot()
 {
     if (m_queue.isEmpty()) {
+        ui->actionStop->setEnabled(false);
         stopLoadingAnimation();
         return;
     }
@@ -237,4 +275,11 @@ void ScreenshotWindow::stopLoadingAnimation()
     m_loadMovie->stop();
     m_loadLabel->setMovie(0);
     m_loadLabel->setText(" ");
+}
+
+void ScreenshotWindow::screenshotsNotFound()
+{
+    ui->statusLabel->setText(trUtf8("Kuvakaappauksia ei ole saatavilla valitulle ohjelmalle"));
+    ui->actionStop->setEnabled(false);
+    stopLoadingAnimation();
 }

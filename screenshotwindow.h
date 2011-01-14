@@ -29,6 +29,7 @@ protected:
     void closeEvent(QCloseEvent *e);
 
 private slots:
+    void stopDownloading();
     void numScreenshotsChanged();
     void feedRequestFinished();
     void thumbnailRequestFinished();
@@ -39,6 +40,7 @@ private:
     void fetchNextScreenshot();
     void startLoadingAnimation();
     void stopLoadingAnimation();
+    void screenshotsNotFound();
     Ui::ScreenshotWindow *ui;
     QSettings *m_settings;
     QLabel *m_loadLabel;
