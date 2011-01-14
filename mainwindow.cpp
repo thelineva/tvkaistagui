@@ -619,7 +619,7 @@ void MainWindow::channelsFetched(const QList<Channel> &channels)
     updateChannelList();
 
     if (m_currentChannelId < 0 && !m_channels.isEmpty()) {
-        fetchProgrammes(m_channels.at(0).id, QDate::currentDate(), false);
+        ui->channelListWidget->setCurrentIndex(ui->channelListWidget->model()->index(0, 0, QModelIndex()));
     }
 }
 
