@@ -14,7 +14,7 @@
    <string>TVkaistaGUI</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,0">
+   <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="1,0">
     <item>
      <widget class="QSplitter" name="splitter">
       <property name="orientation">
@@ -58,16 +58,81 @@
         <bool>false</bool>
        </attribute>
       </widget>
-      <widget class="QTextEdit" name="descriptionTextEdit">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-         <horstretch>0</horstretch>
-         <verstretch>1</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="readOnly">
-        <bool>true</bool>
-       </property>
+      <widget class="QWidget" name="layoutWidget">
+       <layout class="QVBoxLayout" name="verticalLayout_3">
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout">
+          <item>
+           <widget class="QPushButton" name="watchPushButton">
+            <property name="toolTip">
+             <string>Suoratoista valittu ohjelma</string>
+            </property>
+            <property name="text">
+             <string>&amp;Katso</string>
+            </property>
+            <property name="icon">
+             <iconset resource="images.qrc">
+              <normaloff>:/images/multimedia-16x16.png</normaloff>:/images/multimedia-16x16.png</iconset>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="downloadPushButton">
+            <property name="toolTip">
+             <string>Lataa valittu ohjelma</string>
+            </property>
+            <property name="text">
+             <string>&amp;Lataa</string>
+            </property>
+            <property name="icon">
+             <iconset resource="images.qrc">
+              <normaloff>:/images/download-16x16.png</normaloff>:/images/download-16x16.png</iconset>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="screenshotsPushButton">
+            <property name="toolTip">
+             <string>Näytä kuvakaappauksia valitusta ohjelmasta</string>
+            </property>
+            <property name="text">
+             <string>K&amp;uvakaappaukset</string>
+            </property>
+            <property name="icon">
+             <iconset resource="images.qrc">
+              <normaloff>:/images/image-16x16.png</normaloff>:/images/image-16x16.png</iconset>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer_2">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QTextEdit" name="descriptionTextEdit">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>1</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="readOnly">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </widget>
      </widget>
     </item>
@@ -83,6 +148,20 @@
         </property>
         <property name="contextMenuPolicy">
          <enum>Qt::ActionsContextMenu</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="currentDayPushButton">
+        <property name="toolTip">
+         <string>Näytä kuluvan päivän ohjelmatiedot</string>
+        </property>
+        <property name="text">
+         <string>Kuluva &amp;päivä</string>
+        </property>
+        <property name="icon">
+         <iconset resource="images.qrc">
+          <normaloff>:/images/today-16x16.png</normaloff>:/images/today-16x16.png</iconset>
         </property>
        </widget>
       </item>
@@ -129,7 +208,9 @@
     <addaction name="actionNextDay"/>
     <addaction name="actionRefresh"/>
     <addaction name="separator"/>
+    <addaction name="actionProgrammeList"/>
     <addaction name="actionSearchResults"/>
+    <addaction name="separator"/>
     <addaction name="actionDownloads"/>
     <addaction name="actionShortcuts"/>
    </widget>
@@ -148,6 +229,15 @@
    <property name="windowTitle">
     <string>Valikko</string>
    </property>
+   <property name="movable">
+    <bool>false</bool>
+   </property>
+   <property name="iconSize">
+    <size>
+     <width>24</width>
+     <height>24</height>
+    </size>
+   </property>
    <property name="toolButtonStyle">
     <enum>Qt::ToolButtonTextBesideIcon</enum>
    </property>
@@ -160,11 +250,10 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="actionWatchButton"/>
-   <addaction name="actionDownloadButton"/>
+   <addaction name="actionProgrammeListButton"/>
+   <addaction name="actionSearchResultsButton"/>
    <addaction name="separator"/>
    <addaction name="actionRefreshButton"/>
-   <addaction name="actionSearchResultsButton"/>
    <addaction name="separator"/>
   </widget>
   <widget class="QDockWidget" name="downloadsDockWidget">
@@ -424,7 +513,7 @@
       </widget>
      </item>
      <item>
-      <layout class="QGridLayout" name="gridLayout_2" columnstretch="0,1">
+      <layout class="QGridLayout" name="gridLayout_2" columnstretch="0,0">
        <item row="0" column="0">
         <widget class="QLabel" name="sh11Label">
          <property name="font">
@@ -523,30 +612,6 @@
     </layout>
    </widget>
   </widget>
-  <action name="actionWatchButton">
-   <property name="icon">
-    <iconset resource="images.qrc">
-     <normaloff>:/images/multimedia-22x22.png</normaloff>:/images/multimedia-22x22.png</iconset>
-   </property>
-   <property name="text">
-    <string>Katso</string>
-   </property>
-   <property name="toolTip">
-    <string>Suoratoista valittu ohjelma</string>
-   </property>
-  </action>
-  <action name="actionDownloadButton">
-   <property name="icon">
-    <iconset resource="images.qrc">
-     <normaloff>:/images/download-22x22.png</normaloff>:/images/download-22x22.png</iconset>
-   </property>
-   <property name="text">
-    <string>Lataa</string>
-   </property>
-   <property name="toolTip">
-    <string>Lataa valittu ohjelma tietokoneellesi</string>
-   </property>
-  </action>
   <action name="actionWatch">
    <property name="icon">
     <iconset resource="images.qrc">
@@ -638,6 +703,9 @@
    </property>
   </action>
   <action name="actionSearchResults">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>&amp;Hakutulokset</string>
    </property>
@@ -717,6 +785,9 @@
    </property>
   </action>
   <action name="actionSearchResultsButton">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="icon">
     <iconset resource="images.qrc">
      <normaloff>:/images/find-22x22.png</normaloff>:/images/find-22x22.png</iconset>
@@ -757,8 +828,44 @@
    </property>
   </action>
   <action name="actionScreenshots">
+   <property name="icon">
+    <iconset resource="images.qrc">
+     <normaloff>:/images/image-16x16.png</normaloff>:/images/image-16x16.png</iconset>
+   </property>
    <property name="text">
     <string>Kuvakaappaukset</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+K</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>true</bool>
+   </property>
+  </action>
+  <action name="actionProgrammeListButton">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="images.qrc">
+     <normaloff>:/images/list-22x22.png</normaloff>:/images/list-22x22.png</iconset>
+   </property>
+   <property name="text">
+    <string>Ohjelmatiedot</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>true</bool>
+   </property>
+  </action>
+  <action name="actionProgrammeList">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Ohjelmatiedot</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+D</string>
    </property>
   </action>
  </widget>

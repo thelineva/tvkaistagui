@@ -63,6 +63,8 @@ private slots:
     void playDownloadedFile();
     void openDirectory();
     void search();
+    void showProgrammeList();
+    void showSearchResults();
     void toggleSearchResults();
     void toggleDownloadsDockWidget();
     void toggleShortcutsDockWidget();

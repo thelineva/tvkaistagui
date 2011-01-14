@@ -90,6 +90,9 @@ MainWindow::MainWindow(QWidget *parent) :
     formats << "300 kbps MP4" << "1 Mbps Flash" << "2 Mbps MP4" << "8 Mbps TS";
     m_formatComboBox->addItems(formats);
 
+    ui->actionProgrammeList->setChecked(true);
+    ui->actionProgrammeListButton->setChecked(true);
+
     connect(ui->calendarWidget, SIGNAL(clicked(QDate)), SLOT(dateClicked(QDate)));
     connect(ui->calendarWidget, SIGNAL(activated(QDate)), SLOT(dateClicked(QDate)));
     connect(ui->downloadsTableView, SIGNAL(activated(QModelIndex)), SLOT(playDownloadedFile()));
@@ -103,16 +106,20 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionRefresh, SIGNAL(triggered()), SLOT(refreshProgrammes()));
     connect(ui->actionRefreshButton, SIGNAL(triggered()), SLOT(refreshProgrammes()));
     connect(ui->actionCurrentDay, SIGNAL(triggered()), SLOT(goToCurrentDay()));
+    connect(ui->currentDayPushButton, SIGNAL(clicked()), SLOT(goToCurrentDay()));
     connect(ui->actionPreviousDay, SIGNAL(triggered()), SLOT(goToPreviousDay()));
     connect(ui->actionNextDay, SIGNAL(triggered()), SLOT(goToNextDay()));
-    connect(ui->actionWatch, SIGNAL(triggered()), SLOT(watchProgramme()));
-    connect(ui->actionWatchButton, SIGNAL(triggered()), SLOT(watchProgramme()));
+    connect(ui->actionWatch, SIGNAL(triggered()), SLOT(watchProgramme()));    
     connect(ui->actionDownload, SIGNAL(triggered()), SLOT(downloadProgramme()));
-    connect(ui->actionDownloadButton, SIGNAL(triggered()), SLOT(downloadProgramme()));
     connect(ui->actionScreenshots, SIGNAL(triggered()), SLOT(openScreenshotWindow()));
-    connect(ui->actionSearchResults, SIGNAL(triggered()), SLOT(toggleSearchResults()));
-    connect(ui->actionSearchResultsButton, SIGNAL(triggered()), SLOT(toggleSearchResults()));
+    connect(ui->actionProgrammeList, SIGNAL(triggered()), SLOT(showProgrammeList()));
+    connect(ui->actionProgrammeListButton, SIGNAL(triggered()), SLOT(showProgrammeList()));
+    connect(ui->actionSearchResults, SIGNAL(triggered()), SLOT(showSearchResults()));
+    connect(ui->actionSearchResultsButton, SIGNAL(triggered()), SLOT(showSearchResults()));
     connect(ui->actionPlayFile, SIGNAL(triggered()), SLOT(playDownloadedFile()));
+    connect(ui->watchPushButton, SIGNAL(clicked()), SLOT(watchProgramme()));
+    connect(ui->downloadPushButton, SIGNAL(clicked()), SLOT(downloadProgramme()));
+    connect(ui->screenshotsPushButton, SIGNAL(clicked()), SLOT(openScreenshotWindow()));
     connect(ui->playFilePushButton, SIGNAL(clicked()), SLOT(playDownloadedFile()));
     connect(ui->actionOpenDirectory, SIGNAL(triggered()), SLOT(openDirectory()));
     connect(ui->actionSettings, SIGNAL(triggered()), SLOT(openSettingsDialog()));
@@ -446,6 +453,12 @@ void MainWindow::downloadProgramme()
 void MainWindow::openScreenshotWindow()
 {
     if (m_currentProgramme.id < 0) {
+        QMessageBox msgBox(this);
+        msgBox.setWindowTitle(windowTitle());
+        msgBox.setIcon(QMessageBox::Information);
+        msgBox.setText(trUtf8("Kuvakaappauksia ei ole saatavilla."));
+        msgBox.setStandardButtons(QMessageBox::Ok);
+        msgBox.exec();
         return;
     }
 
@@ -597,34 +610,52 @@ void MainWindow::search()
     }
 }
 
+void MainWindow::showProgrammeList()
+{
+    if (m_searchResultsVisible) {
+        toggleSearchResults();
+    }
+    else {
+        ui->actionProgrammeListButton->setChecked(true);
+        ui->actionProgrammeList->setChecked(true);
+    }
+}
+
+void MainWindow::showSearchResults()
+{
+    if (m_searchResultsVisible) {
+        ui->actionSearchResultsButton->setChecked(true);
+        ui->actionSearchResults->setChecked(true);
+    }
+    else {
+        toggleSearchResults();
+    }
+}
+
 void MainWindow::toggleSearchResults()
 {
     m_searchResultsVisible = !m_searchResultsVisible;
     ui->calendarWidget->setVisible(!m_searchResultsVisible);
     ui->channelListWidget->setVisible(!m_searchResultsVisible);
+    ui->currentDayPushButton->setVisible(!m_searchResultsVisible);
+    ui->actionSearchResults->setChecked(m_searchResultsVisible);
     ui->actionSearchResultsButton->setChecked(m_searchResultsVisible);
+    ui->actionProgrammeList->setChecked(!m_searchResultsVisible);
+    ui->actionProgrammeListButton->setChecked(!m_searchResultsVisible);
     ui->descriptionTextEdit->setPlainText(QString());
     m_currentProgramme.id = -1;
     m_programmeTableModel->setDetailsVisible(m_searchResultsVisible);
     QHeaderView *header = ui->programmeTableView->horizontalHeader();
     header->setStretchLastSection(!m_searchResultsVisible);
 
-    QIcon tmpIcon = ui->actionSearchResultsButton->icon();
-    ui->actionSearchResultsButton->setIcon(m_searchIcon);
-    m_searchIcon = tmpIcon;
-
     if (m_searchResultsVisible) {
-        ui->actionSearchResults->setText(trUtf8("&Ohjelmatiedot"));
-        ui->actionSearchResultsButton->setText(trUtf8("Ohjelmatiedot"));
         m_programmeTableModel->setProgrammes(m_searchResults);
-        int dateWidth = ui->programmeTableView->fontMetrics().boundingRect(trUtf8("00.00.0000__")).width();
+        int dateWidth = ui->programmeTableView->fontMetrics().width(trUtf8("00.00.0000__"));
         int titleWidth = ui->programmeTableView->width() - header->sectionSize(0);
         header->resizeSection(1, titleWidth);
         header->resizeSection(2, dateWidth);
     }
     else {
-        ui->actionSearchResults->setText(trUtf8("&Hakutulokset"));
-        ui->actionSearchResultsButton->setText(trUtf8("Hakutulokset"));
         m_programmeTableModel->setProgrammes(QList<Programme>());
         fetchProgrammes(m_currentChannelId, m_currentDate, false);
         ui->programmeTableView->resizeColumnToContents(1);
@@ -887,14 +918,14 @@ void MainWindow::updateFontSize()
     font = ui->sh1Label->font();
     font.setPointSize(size);
 
-    for (int i = 0; i < 8; i++) {
+    for (int i = 0; i < 9; i++) {
         labels1[i]->setFont(font);
     }
 
     font = ui->sh6Label->font();
     font.setPointSize(size);
 
-    for (int i = 0; i < 8; i++) {
+    for (int i = 0; i < 9; i++) {
         labels2[i]->setFont(font);
     }
 }
