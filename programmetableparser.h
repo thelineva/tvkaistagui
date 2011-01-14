@@ -31,6 +31,7 @@ protected:
 private:
     bool parseProgrammeId(const QString &s);
     bool parseTime(const QString &s);
+    void parseFlags();
     QList<Programme> *m_programmes;
     QDate m_firstDay;
     QDate m_requestedDate;

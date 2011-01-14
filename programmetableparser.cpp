@@ -83,18 +83,14 @@ void ProgrammeTableParser::startElementParsed(const QString &name)
         m_x = 3;
         m_parseContent = true;
     }
-    else if (m_x == 2 && name == "div" && attribute("id").startsWith("ppd")) {
-        parseProgrammeId(attribute("id"));
-        QString clazz = attribute("class");
-        if (clazz.contains("upcoming")) m_currentProgramme.flags |= 0xF;
-        if (clazz.contains("nof0")) m_currentProgramme.flags |= 0x01;
-        if (clazz.contains("nof1")) m_currentProgramme.flags |= 0x02;
-        if (clazz.contains("nof2")) m_currentProgramme.flags |= 0x04;
-        if (clazz.contains("nof3")) m_currentProgramme.flags |= 0x08;
-    }
-    else if (m_x == 2 && name == "div" && attribute("class") == "title") {
+    else if (m_x == 2 && name == "span" && attribute("id").startsWith("pid")) {
         m_x = 4;
+        parseProgrammeId(attribute("id"));
+        parseFlags();
         m_parseContent = true;
+    }
+    else if (m_x == 4 && name == "span") {
+        parseFlags();
     }
     else if (m_x == 2 && name == "span" && attribute("class") == "information") {
         m_x = 5;
@@ -135,7 +131,7 @@ void ProgrammeTableParser::endElementParsed(const QString &name)
         m_x = 2;
         m_parseContent = false;
     }
-    else if (m_x == 4 && name == "div") {
+    else if (m_x == 4 && name == "span") {
         m_x = 2;
         m_parseContent = false;
     }
@@ -193,9 +189,9 @@ void ProgrammeTableParser::contentParsed(const QString &content)
 
 bool ProgrammeTableParser::parseProgrammeId(const QString &s)
 {
-    /* "ppd8217946" -> 8217946 */
+    /* "pid8217946" -> 8217946 */
 
-    if (!s.startsWith("ppd")) {
+    if (!s.startsWith("pid")) {
         return false;
     }
 
@@ -245,4 +241,14 @@ bool ProgrammeTableParser::parseTime(const QString &s)
 
     m_currentProgramme.startDateTime = QDateTime(date, time);
     return true;
+}
+
+void ProgrammeTableParser::parseFlags()
+{
+    QString clazz = attribute("class");
+    if (clazz.contains("upcoming")) m_currentProgramme.flags |= 0xF;
+    if (clazz.contains("nof0")) m_currentProgramme.flags |= 0x01;
+    if (clazz.contains("nof1")) m_currentProgramme.flags |= 0x02;
+    if (clazz.contains("nof2")) m_currentProgramme.flags |= 0x04;
+    if (clazz.contains("nof3")) m_currentProgramme.flags |= 0x08;
 }
