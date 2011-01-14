@@ -7,7 +7,8 @@
 int DownloadDelegate::PADDING = 10;
 
 DownloadDelegate::DownloadDelegate(QWidget *parent) :
-    QStyledItemDelegate(parent), m_parentWidget(parent)
+        QStyledItemDelegate(parent), m_parentWidget(parent),
+        m_pixmap(":/images/unfinished-16x16.png")
 {
 }
 
@@ -30,16 +31,29 @@ void DownloadDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
                       Qt::AlignLeft | Qt::TextDontClip, index.data().toString(), &bounding);
 
     painter->setFont(option.font);
-    painter->drawText(QRect(bounding.right() + 10, 0, option.rect.width() - bounding.right() - 10, INT_MAX),
-                      Qt::AlignLeft | Qt::TextDontClip, index.data(Qt::UserRole + 1).toString(), &bounding);
-
     painter->setPen(painter->pen().color().lighter(200));
-    painter->drawText(QRect(0, bounding.bottom() + 3, option.rect.width() - PADDING, INT_MAX),
+    int y = bounding.bottom() + 3;
+
+    painter->drawText(QRect(0, y, option.rect.width() - PADDING, INT_MAX),
                       Qt::AlignLeft | Qt::TextDontClip, index.data(Qt::UserRole + 2).toString(), &bounding);
+
+    int status = index.data(Qt::UserRole + 1).toInt();
+
+    if (status == 0) {
+        painter->drawText(QRect(0, bounding.bottom() + 3, option.rect.width() - PADDING, INT_MAX),
+                      Qt::AlignLeft | Qt::TextDontClip, index.data(Qt::UserRole + 3).toString(), &bounding);
+    }
+    else if (status == 2) {
+        int x = option.rect.width() -  2 * PADDING - m_pixmap.width();
+
+        if (x > bounding.right()) {
+            painter->drawPixmap(x, y, m_pixmap);
+        }
+    }
 
     if ((option.state & QStyle::State_Selected) == 0) {
         painter->setPen(painter->pen().color().lighter(160));
-        painter->drawLine(-PADDING, bounding.bottom() + 10, option.rect.width(), bounding.bottom() + 10);
+        painter->drawLine(-PADDING, bounding.bottom() + 10, option.rect.width() - PADDING, bounding.bottom() + 10);
     }
 
     painter->restore();
@@ -47,13 +61,13 @@ void DownloadDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
 
 QSize DownloadDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
-    QRect bounding1 = option.fontMetrics.boundingRect(QRect(option.rect.x() + PADDING, PADDING, option.rect.width() - PADDING, INT_MAX),
-                                                      Qt::AlignLeft, index.data().toString());
-    QRect bounding2 = option.fontMetrics.boundingRect(QRect(bounding1.right() + 10, PADDING, option.rect.width() - bounding1.right() - 10, INT_MAX),
-                                                      Qt::AlignLeft, index.data(Qt::UserRole + 1).toString());
-    bounding1 = bounding1 | bounding2;
-    bounding2 = option.fontMetrics.boundingRect(QRect(option.rect.x() + PADDING, bounding1.bottom() + 3, option.rect.width() - PADDING, INT_MAX),
-                                                      Qt::AlignLeft, index.data(Qt::UserRole + 2).toString());
-    bounding1 = bounding1 | bounding2;
-    return QSize(bounding1.width() + 2 * PADDING, bounding1.height() + PADDING);
+    /* Kolmerivinen lataamisen aikana ja näytettäessä virheilmoitus */
+    QFont titleFont(option.font);
+    titleFont.setBold(true);
+    QFontMetrics metrics(titleFont, 0);
+    int width = metrics.width(index.data().toString()) + 2 * PADDING;
+    width = qMax(width, option.fontMetrics.width(index.data(Qt::UserRole + 1).toString()) + 2 * PADDING);
+    int status = index.data(Qt::UserRole + 1).toInt();
+    int lineCount = (status == 0 || status == 3) ? 3 : 2;
+    return QSize(width, option.fontMetrics.height() * lineCount + 23);
 }

@@ -40,10 +40,13 @@ public:
     bool load();
     bool save();
 
+signals:
+    void downloadFinished();
+
 private slots:
     void updateDownloadProgress();
-    void downloadFinished();
-    void downloadNetworkError();
+    void downloaderFinished();
+    void networkError();
 
 private:
     QString formatBytes(qint64 bytes) const;

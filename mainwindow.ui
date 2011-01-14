@@ -27,6 +27,9 @@
          <verstretch>5</verstretch>
         </sizepolicy>
        </property>
+       <property name="tabKeyNavigation">
+        <bool>false</bool>
+       </property>
        <property name="selectionMode">
         <enum>QAbstractItemView::SingleSelection</enum>
        </property>
@@ -179,6 +182,9 @@
        </property>
        <property name="selectionBehavior">
         <enum>QAbstractItemView::SelectRows</enum>
+       </property>
+       <property name="horizontalScrollMode">
+        <enum>QAbstractItemView::ScrollPerPixel</enum>
        </property>
        <property name="showGrid">
         <bool>false</bool>

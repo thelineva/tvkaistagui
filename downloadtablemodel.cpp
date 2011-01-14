@@ -42,9 +42,12 @@ QVariant DownloadTableModel::data(const QModelIndex &index, int role) const
         return download.title;
 
     case Qt::UserRole + 1:
-        return download.dateTime.toString(tr("d.M.yyyy"));
+        return download.status;
 
     case Qt::UserRole + 2:
+        return download.dateTime.toString(tr("ddd d.M.yyyy 'klo' h.mm"));
+
+    case Qt::UserRole + 3:
         return download.description;
     }
 
@@ -107,8 +110,8 @@ int DownloadTableModel::download(const Programme &programme, int format, const Q
     downloader->setFilename(QFileInfo(QString("%1/%2").arg(dirPath, filenameFormat)).absoluteFilePath());
     downloader->setFilenameFromReply(filenameFromReply);
     downloader->start(url);
-    connect(downloader, SIGNAL(finished()), SLOT(downloadFinished()));
-    connect(downloader, SIGNAL(networkError()), SLOT(downloadNetworkError()));
+    connect(downloader, SIGNAL(finished()), SLOT(downloaderFinished()));
+    connect(downloader, SIGNAL(networkError()), SLOT(networkError()));
 
     FileDownload download;
     int index = m_downloads.size();
@@ -318,7 +321,7 @@ void DownloadTableModel::updateDownloadProgress()
     }
 }
 
-void DownloadTableModel::downloadFinished()
+void DownloadTableModel::downloaderFinished()
 {
     int count = m_downloads.size();
     int running = 0;
@@ -336,6 +339,7 @@ void DownloadTableModel::downloadFinished()
                 m_downloads.replace(i, download);
                 QModelIndex modelIndex = index(i, 0, QModelIndex());
                 emit dataChanged(modelIndex, modelIndex);
+                emit downloadFinished();
             }
             else {
                 running++;
@@ -348,7 +352,7 @@ void DownloadTableModel::downloadFinished()
     }
 }
 
-void DownloadTableModel::downloadNetworkError()
+void DownloadTableModel::networkError()
 {
     int count = m_downloads.size();
 

@@ -69,6 +69,7 @@ private slots:
     void posterFetched(const Programme &programme, const QImage &poster);
     void streamUrlFetched(const Programme &programme, int format, const QUrl &url);
     void searchResultsFetched(const QList<Programme> &programmes);
+    void downloadFinished();
     void networkError();
     void loginError();
     void streamNotFound();
@@ -81,7 +82,8 @@ private:
     void updateFontSize();
     void updateChannelList();
     void updateDescription();
-    void updateTitleAndCalendar();
+    void updateWindowTitle();
+    void updateCalendar();
     void scrollProgrammes();
     void startLoadingAnimation();
     void stopLoadingAnimation();

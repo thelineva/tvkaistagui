@@ -15,6 +15,7 @@ public:
 
 private:
     QWidget *m_parentWidget;
+    QPixmap m_pixmap;
     static int PADDING;
 };
 

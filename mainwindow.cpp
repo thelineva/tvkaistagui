@@ -127,6 +127,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(m_client, SIGNAL(networkError()), SLOT(networkError()));
     connect(m_client, SIGNAL(loginError()), SLOT(loginError()));
     connect(m_client, SIGNAL(streamNotFound()), SLOT(streamNotFound()));
+    connect(m_downloadTableModel, SIGNAL(downloadFinished()), SLOT(downloadFinished()));
 
     QAction *action = new QAction(this);
     action->setShortcut(Qt::Key_F2);
@@ -232,10 +233,13 @@ MainWindow::MainWindow(QWidget *parent) :
 
     if (downloadCount > 0) {
         ui->downloadsTableView->scrollToBottom();
+        ui->downloadsTableView->resizeColumnToContents(0);
+        ui->downloadsTableView->resizeRowsToContents();
         ui->downloadsTableView->selectRow(downloadCount - 1);
     }
 
     downloadSelectionChanged();
+    updateCalendar();
 
     if (!m_client->isValidUsernameAndPassword()) {
         QTimer::singleShot(0, this, SLOT(openSettingsDialog()));
@@ -476,12 +480,12 @@ void MainWindow::openHelp()
 void MainWindow::abortDownload()
 {
     QModelIndexList indexes = ui->downloadsTableView->selectionModel()->selectedRows(0);
-    QList<int> rows;
 
     for (int i = 0; i < indexes.size(); i++) {
         m_downloadTableModel->abortDownload(indexes.at(i).row());
     }
 
+    ui->downloadsTableView->resizeRowsToContents();
     downloadSelectionChanged();
 }
 
@@ -499,6 +503,8 @@ void MainWindow::removeDownload()
     for (int i = rows.size() - 1; i >= 0; i--) {
         m_downloadTableModel->removeDownload(rows.at(i));
     }
+
+    ui->downloadsTableView->resizeColumnToContents(0);
 }
 
 void MainWindow::refreshChannels()
@@ -634,7 +640,8 @@ void MainWindow::programmesFetched(int channelId, const QDate &date, const QList
     }
 
     stopLoadingAnimation();
-    updateTitleAndCalendar();
+    updateWindowTitle();
+    updateCalendar();
     scrollProgrammes();
 }
 
@@ -656,6 +663,8 @@ void MainWindow::streamUrlFetched(const Programme &programme, int format, const 
     if (m_downloading) {
         int row = m_downloadTableModel->download(
                 programme, format, m_channelMap.value(programme.channelId), url);
+        ui->downloadsTableView->resizeColumnToContents(0);
+        ui->downloadsTableView->resizeRowsToContents();
         ui->downloadsTableView->scrollTo(m_downloadTableModel->index(row, 0, QModelIndex()));
     }
     else {
@@ -678,6 +687,11 @@ void MainWindow::searchResultsFetched(const QList<Programme> &programmes)
     }
 
     stopLoadingAnimation();
+}
+
+void MainWindow::downloadFinished()
+{
+    ui->downloadsTableView->resizeRowsToContents();
 }
 
 void MainWindow::networkError()
@@ -753,7 +767,8 @@ void MainWindow::fetchProgrammes(int channelId, const QDate &date, bool refresh)
         }
 
         m_programmeTableModel->setProgrammes(programmes);
-        updateTitleAndCalendar();
+        updateWindowTitle();
+        updateCalendar();
         scrollProgrammes();
         return;
     }
@@ -783,7 +798,8 @@ void MainWindow::fetchSearchResults(const QString &phrase, bool refresh)
         toggleSearchResults();
     }
 
-    updateTitleAndCalendar();
+    updateWindowTitle();
+    updateCalendar();
 }
 
 bool MainWindow::fetchPoster()
@@ -879,7 +895,7 @@ void MainWindow::updateDescription()
     ui->descriptionTextEdit->setHtml(html);
 }
 
-void MainWindow::updateTitleAndCalendar()
+void MainWindow::updateWindowTitle()
 {
     QListWidgetItem *item = ui->channelListWidget->currentItem();
 
@@ -890,7 +906,10 @@ void MainWindow::updateTitleAndCalendar()
     else {
         setWindowTitle(QApplication::applicationName());
     }
+}
 
+void MainWindow::updateCalendar()
+{
     ui->calendarWidget->setSelectedDate(m_currentDate);
     QDate currentDate = QDate::currentDate();
 
