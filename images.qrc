@@ -25,5 +25,6 @@
         <file>images/today-16x16.png</file>
         <file>images/unfinished-16x16.png</file>
         <file>images/close-22x22.png</file>
+        <file>images/image-16x16.png</file>
     </qresource>
 </RCC>
