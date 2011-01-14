@@ -15,21 +15,24 @@
 #include "downloader.h"
 #include "downloaddelegate.h"
 #include "downloadtablemodel.h"
+#include "programmefeedparser.h"
 #include "programmetablemodel.h"
 #include "tvkaistaclient.h"
+#include "screenshotwindow.h"
 #include "settingsdialog.h"
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
 MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent), ui(new Ui::MainWindow), m_loadMovie(new QMovie(this)),
+    QMainWindow(parent), ui(new Ui::MainWindow),
     m_settings(QSettings::IniFormat, QSettings::UserScope,
                    QCoreApplication::applicationName(),
                    QCoreApplication::applicationName()),
     m_client(new TvkaistaClient(this)),
     m_downloadTableModel(new DownloadTableModel(&m_settings, this)),
     m_programmeTableModel(new ProgrammeTableModel(this)),
-    m_cache(new Cache), m_currentChannelId(-1), m_searchIcon(":/images/list-22x22.png"),
+    m_cache(new Cache), m_settingsDialog(0), m_screenshotWindow(0),
+    m_currentChannelId(-1), m_searchIcon(":/images/list-22x22.png"),
     m_downloading(false), m_searchResultsVisible(false)
 {
     ui->setupUi(this);
@@ -47,6 +50,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->programmeTableView->addAction(ui->actionDownload);
     ui->programmeTableView->addAction(ui->actionRefresh);
     ui->programmeTableView->setContextMenuPolicy(Qt::ActionsContextMenu);
+    ui->programmeTableView->resizeColumnToContents(1);
     ui->channelListWidget->addAction(ui->actionRefreshChannels);
     ui->channelListWidget->setContextMenuPolicy(Qt::ActionsContextMenu);
     ui->calendarWidget->addAction(ui->actionCurrentDay);
@@ -58,6 +62,7 @@ MainWindow::MainWindow(QWidget *parent) :
     m_searchComboBox = new QComboBox(this);
     m_searchComboBox->setEditable(true);
     m_searchComboBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    m_loadMovie = new QMovie(this);
     m_loadMovie->setFileName(":/images/load-32x32.gif");
     m_loadLabel = new QLabel(this);
     m_loadLabel->setMinimumSize(47, 32);
@@ -104,6 +109,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionWatchButton, SIGNAL(triggered()), SLOT(watchProgramme()));
     connect(ui->actionDownload, SIGNAL(triggered()), SLOT(downloadProgramme()));
     connect(ui->actionDownloadButton, SIGNAL(triggered()), SLOT(downloadProgramme()));
+    connect(ui->actionScreenshots, SIGNAL(triggered()), SLOT(openScreenshotWindow()));
     connect(ui->actionSearchResults, SIGNAL(triggered()), SLOT(toggleSearchResults()));
     connect(ui->actionSearchResultsButton, SIGNAL(triggered()), SLOT(toggleSearchResults()));
     connect(ui->actionPlayFile, SIGNAL(triggered()), SLOT(playDownloadedFile()));
@@ -437,8 +443,31 @@ void MainWindow::downloadProgramme()
     startLoadingAnimation();
 }
 
+void MainWindow::openScreenshotWindow()
+{
+    if (m_currentProgramme.id < 0) {
+        return;
+    }
+
+    if (m_screenshotWindow == 0) {
+        m_screenshotWindow = new ScreenshotWindow(&m_settings, this);
+        m_screenshotWindow->setClient(m_client);
+    }
+    else {
+        m_screenshotWindow->activateWindow();
+    }
+
+    m_screenshotWindow->fetchScreenshots(m_currentProgramme);
+    m_screenshotWindow->show();
+}
+
 void MainWindow::openSettingsDialog()
 {
+    if (m_settingsDialog != 0) {
+        m_settingsDialog->activateWindow();
+        return;
+    }
+
     m_settingsDialog = new SettingsDialog(&m_settings, this);
     connect(m_settingsDialog, SIGNAL(accepted()), SLOT(settingsAccepted()));
     m_settingsDialog->show();
@@ -447,6 +476,7 @@ void MainWindow::openSettingsDialog()
 void MainWindow::settingsAccepted()
 {
     m_settingsDialog->deleteLater();
+    m_settingsDialog = 0;
     m_settings.beginGroup("client");
     m_client->setUsername(m_settings.value("username").toString());
     m_client->setPassword(decodePassword(m_settings.value("password").toString()));
@@ -591,14 +621,13 @@ void MainWindow::toggleSearchResults()
         int titleWidth = ui->programmeTableView->width() - header->sectionSize(0);
         header->resizeSection(1, titleWidth);
         header->resizeSection(2, dateWidth);
-        header->headerDataChanged(Qt::Horizontal, 0, 2);
     }
     else {
         ui->actionSearchResults->setText(trUtf8("&Hakutulokset"));
         ui->actionSearchResultsButton->setText(trUtf8("Hakutulokset"));
         m_programmeTableModel->setProgrammes(QList<Programme>());
         fetchProgrammes(m_currentChannelId, m_currentDate, false);
-        header->headerDataChanged(Qt::Horizontal, 0, 1);
+        ui->programmeTableView->resizeColumnToContents(1);
     }
 }
 
@@ -647,6 +676,7 @@ void MainWindow::programmesFetched(int channelId, const QDate &date, const QList
     }
     else {
         m_programmeTableModel->setProgrammes(programmes);
+        ui->programmeTableView->resizeColumnToContents(1);
     }
 
     stopLoadingAnimation();
@@ -706,6 +736,7 @@ void MainWindow::downloadFinished()
 
 void MainWindow::networkError()
 {
+    qWarning() << m_client->lastError();
     stopLoadingAnimation();
     QMessageBox msgBox(this);
     msgBox.setWindowTitle(windowTitle());
@@ -777,6 +808,7 @@ void MainWindow::fetchProgrammes(int channelId, const QDate &date, bool refresh)
         }
 
         m_programmeTableModel->setProgrammes(programmes);
+        ui->programmeTableView->resizeColumnToContents(1);
         updateWindowTitle();
         updateCalendar();
         scrollProgrammes();

@@ -16,7 +16,9 @@ class QLabel;
 class QSignalMapper;
 class Cache;
 class DownloadTableModel;
+class ProgrammeFeedParser;
 class ProgrammeTableModel;
+class ScreenshotWindow;
 class SettingsDialog;
 class TvkaistaClient;
 
@@ -50,6 +52,7 @@ private slots:
     void goToNextDay();
     void watchProgramme();
     void downloadProgramme();
+    void openScreenshotWindow();
     void openSettingsDialog();
     void settingsAccepted();
     void openAboutDialog();
@@ -104,6 +107,7 @@ private:
     ProgrammeTableModel *m_programmeTableModel;
     Cache *m_cache;
     SettingsDialog *m_settingsDialog;
+    ScreenshotWindow *m_screenshotWindow;
     QList<Channel> m_channels;
     QMap<int, QString> m_channelMap;
     QList<Programme> m_searchResults;

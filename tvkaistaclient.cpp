@@ -16,7 +16,7 @@ TvkaistaClient::TvkaistaClient(QObject *parent) :
     QObject(parent), m_networkAccessManager(new QNetworkAccessManager(this)), m_reply(0),
     m_cache(0), m_programmeTableParser(new ProgrammeTableParser)
 {
-    m_requestedPoster.id = -1;
+    m_requestedProgramme.id = -1;
     m_requestedStream.id = -1;
 }
 
@@ -143,7 +143,25 @@ void TvkaistaClient::sendPosterRequest(const Programme &programme)
     m_reply = m_networkAccessManager->get(QNetworkRequest(QUrl(urlString)));
     connect(m_reply, SIGNAL(error(QNetworkReply::NetworkError)), SLOT(requestNetworkError(QNetworkReply::NetworkError)));
     connect(m_reply, SIGNAL(finished()), SLOT(posterRequestFinished()));
-    m_requestedPoster = programme;
+    m_requestedProgramme = programme;
+}
+
+QNetworkReply* TvkaistaClient::sendDetailedFeedRequest(const Programme &programme)
+{
+    QString urlString = QString("http://www.tvkaista.fi/feedbeta/programs/%1/detailed.mediarss").arg(programme.id);
+    qDebug() << "GET" << urlString;
+    QUrl url(urlString);
+    QNetworkRequest request(url);
+    addAuthHeaderToRequest(request);
+    return m_networkAccessManager->get(request);
+}
+
+QNetworkReply* TvkaistaClient::sendThumbnailRequest(const QUrl &url)
+{
+    qDebug() << "GET" << url.toString();
+    QNetworkRequest request(url);
+    addAuthHeaderToRequest(request);
+    return m_networkAccessManager->get(request);
 }
 
 void TvkaistaClient::sendStreamRequest(const Programme &programme)
@@ -220,9 +238,6 @@ void TvkaistaClient::loginRequestFinished()
     else if (m_programmeTableParser->requestedChannelId() >= 0) {
         sendProgrammeRequest(m_programmeTableParser->requestedChannelId(),
                              m_programmeTableParser->requestedDate());
-    }
-    else if (m_requestedPoster.id >= 0) {
-        sendPosterRequest(m_requestedPoster);
     }
     else if (m_requestedStream.id >= 0) {
         sendStreamRequest(m_requestedStream);
@@ -305,11 +320,11 @@ void TvkaistaClient::posterRequestFinished()
     QImage poster = QImage::fromData(data, "JPEG");
 
     if (!poster.isNull()) {
-        m_cache->savePoster(m_requestedPoster, data);
-        emit posterFetched(m_requestedPoster, poster);
+        m_cache->savePoster(m_requestedProgramme, data);
+        emit posterFetched(m_requestedProgramme, poster);
     }
 
-    m_requestedPoster.id = -1;
+    m_requestedProgramme.id = -1;
     m_reply->deleteLater();
     m_reply = 0;
 }
@@ -331,16 +346,12 @@ void TvkaistaClient::searchRequestFinished()
     ProgrammeFeedParser parser;
 
     if (!parser.parse(m_reply)) {
-        qDebug() << parser.lastError();
-        m_reply->deleteLater();
-        m_reply = 0;
+        qWarning() << parser.lastError();
     }
-    else {
-        QList<Programme> programmes = parser.programmes();
-        m_reply->deleteLater();
-        m_reply = 0;
-        emit searchResultsFetched(programmes);
-    }
+
+    m_reply->deleteLater();
+    m_reply = 0;
+    emit searchResultsFetched(parser.programmes());
 }
 
 void TvkaistaClient::requestNetworkError(QNetworkReply::NetworkError error)
@@ -402,7 +413,7 @@ void TvkaistaClient::abortRequest()
         reply->deleteLater();
     }
 
-    m_requestedPoster.id = -1;
+    m_requestedProgramme.id = -1;
     m_requestedStream.id = -1;
 }
 

@@ -115,6 +115,7 @@
     </property>
     <addaction name="actionWatch"/>
     <addaction name="actionDownload"/>
+    <addaction name="actionScreenshots"/>
     <addaction name="separator"/>
     <addaction name="actionSettings"/>
     <addaction name="actionQuit"/>
@@ -753,6 +754,11 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+M</string>
+   </property>
+  </action>
+  <action name="actionScreenshots">
+   <property name="text">
+    <string>Kuvakaappaukset</string>
    </property>
   </action>
  </widget>

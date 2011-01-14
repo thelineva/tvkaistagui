@@ -1,7 +1,8 @@
 #include <QDebug>
 #include "programmefeedparser.h"
 
-ProgrammeFeedParser::ProgrammeFeedParser() : m_dateTimeRegexp("(\\d{1,2}) (\\w{3}) (\\d+) (\\d{2}):(\\d{2}):(\\d{2})")
+ProgrammeFeedParser::ProgrammeFeedParser() : m_dateTimeRegexp("(\\d{1,2}) (\\w{3}) (\\d+) (\\d{2}):(\\d{2}):(\\d{2})"),
+    m_timeRegexp("^(\\d{1,2}):(\\d{1,2}):(\\d{1,2})")
 {
 }
 
@@ -42,6 +43,11 @@ QList<Programme> ProgrammeFeedParser::programmes() const
     return m_programmes;
 }
 
+QList<Thumbnail> ProgrammeFeedParser::thumbnails() const
+{
+    return m_thumbnails;
+}
+
 void ProgrammeFeedParser::parseChannelElement()
 {
     while (m_reader.readNextStartElement()) {
@@ -75,12 +81,31 @@ void ProgrammeFeedParser::parseItemElement()
         else if (m_reader.name() == "pubDate") {
             programme.startDateTime = parseDateTime(m_reader.readElementText());
         }
+        else if (m_reader.qualifiedName() == "media:group") {
+            parseMediaGroupElement();
+        }
         else {
             m_reader.skipCurrentElement();
         }
     }
 
     m_programmes.append(programme);
+}
+
+void ProgrammeFeedParser::parseMediaGroupElement()
+{
+    while (m_reader.readNextStartElement()) {
+        if (m_reader.qualifiedName() == "media:thumbnail") {
+            Thumbnail thumbnail(QUrl(m_reader.attributes().value("url").toString()),
+                                parseTime(m_reader.attributes().value("time").toString()));
+
+            if (!thumbnail.time.isNull()) {
+                m_thumbnails.append(thumbnail);
+            }
+        }
+
+        m_reader.skipCurrentElement();
+    }
 }
 
 int ProgrammeFeedParser::parseProgrammeId(const QString &s)
@@ -152,4 +177,16 @@ QDateTime ProgrammeFeedParser::parseDateTime(const QString &s)
     }
 
     return QDateTime();
+}
+
+QTime ProgrammeFeedParser::parseTime(const QString &s)
+{
+    if (m_timeRegexp.indexIn(s) >= 0) {
+        int hour = m_timeRegexp.cap(1).toInt();
+        int min = m_timeRegexp.cap(2).toInt();
+        int sec = m_timeRegexp.cap(3).toInt();
+        return QTime(hour, min, sec);
+    }
+
+    return QTime();
 }

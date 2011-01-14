@@ -11,6 +11,7 @@
 class QNetworkAccessManager;
 class QNetworkRequest;
 class Cache;
+class ProgrammeFeedParser;
 class ProgrammeTableParser;
 
 class TvkaistaClient : public QObject
@@ -37,6 +38,9 @@ public:
     void sendPosterRequest(const Programme &programme);
     void sendStreamRequest(const Programme &programme);
     void sendSearchRequest(const QString &phrase);
+    QNetworkReply* sendDetailedFeedRequest(const Programme &programme);
+    QNetworkReply* sendThumbnailRequest(const QUrl &url);
+    static QString networkErrorString(QNetworkReply::NetworkError error);
 
 signals:
     void loggedIn();
@@ -65,12 +69,11 @@ private:
     void addAuthHeaderToRequest(QNetworkRequest &request);
     void abortRequest();
     bool checkResponse();
-    QString networkErrorString(QNetworkReply::NetworkError error);
     QNetworkAccessManager *m_networkAccessManager;
     QNetworkReply *m_reply;
     Cache *m_cache;
     ProgrammeTableParser *m_programmeTableParser;
-    Programme m_requestedPoster;
+    Programme m_requestedProgramme;
     Programme m_requestedStream;
     int m_requestedFormat;
     QDateTime m_lastLogin;
