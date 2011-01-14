@@ -201,12 +201,13 @@ MainWindow::MainWindow(QWidget *parent) :
     m_programmeTableModel->setFormat(format);
     m_settings.endGroup();
 
-    m_settings.beginGroup("mainWindow");
-    restoreGeometry(m_settings.value("geometry").toByteArray());
-
-    if (!restoreState(m_settings.value("state").toByteArray())) {
+    if (m_settings.value("version").toString() != APP_VERSION) {
         ui->shortcutsDockWidget->setVisible(false);
     }
+
+    m_settings.beginGroup("mainWindow");
+    restoreGeometry(m_settings.value("geometry").toByteArray());
+    restoreState(m_settings.value("state").toByteArray());
 
     if (!ui->splitter->restoreState(m_settings.value("splitter").toByteArray())) {
         ui->splitter->setSizes(QList<int>() << 450 << 150);
@@ -278,6 +279,8 @@ void MainWindow::closeEvent(QCloseEvent *e)
             return;
         }
     }
+
+    m_settings.setValue("version", APP_VERSION);
 
     m_settings.beginGroup("mainWindow");
     m_settings.setValue("geometry", saveGeometry());
@@ -752,9 +755,13 @@ void MainWindow::searchResultsFetched(const QList<Programme> &programmes)
     }
     else {
         m_programmeTableModel->setProgrammes(programmes);
+        ui->programmeTableView->setFocus();
         ui->programmeTableView->scrollToBottom();
-        ui->programmeTableView->selectionModel()->select(m_programmeTableModel->index(programmes.size() - 1, 1, QModelIndex()),
-                                                         QItemSelectionModel::SelectCurrent | QItemSelectionModel::Rows);
+
+        QModelIndex modelIndex = m_programmeTableModel->index(programmes.size() - 1, 0, QModelIndex());
+        ui->programmeTableView->selectionModel()->select(modelIndex,
+            QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
+        ui->programmeTableView->setCurrentIndex(modelIndex);
     }
 
     stopLoadingAnimation();
@@ -1024,7 +1031,7 @@ void MainWindow::scrollProgrammes()
         m_currentProgramme.id = -1;
     }
     else {
-        QModelIndex index = m_programmeTableModel->index(row, 1, QModelIndex());
+        QModelIndex index = m_programmeTableModel->index(row, 0, QModelIndex());
         ui->programmeTableView->scrollTo(index, QAbstractItemView::PositionAtCenter);
         ui->programmeTableView->selectionModel()->select(
                 index, QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
