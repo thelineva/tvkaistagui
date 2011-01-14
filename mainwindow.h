@@ -77,7 +77,7 @@ private slots:
 private:
     void fetchChannels(bool refresh);
     void fetchProgrammes(int channelId, const QDate &date, bool refresh);
-    void fetchSearchResults(const QString &phrase, bool refresh);
+    void fetchSearchResults(const QString &phrase);
     bool fetchPoster();
     void updateFontSize();
     void updateChannelList();

@@ -383,7 +383,7 @@ void MainWindow::refreshProgrammes()
     m_lastRefreshTime = now;
 
     if (m_searchResultsVisible) {
-        fetchSearchResults(m_searchPhrase, true);
+        fetchSearchResults(m_searchPhrase);
     }
     else {
         fetchProgrammes(m_currentChannelId, m_currentDate, true);
@@ -544,7 +544,7 @@ void MainWindow::openDirectory()
 
 void MainWindow::search()
 {
-    QString phrase = m_searchComboBox->currentText();
+    QString phrase = m_searchComboBox->currentText().trimmed();
     m_searchHistory.removeAll(phrase);
     m_searchHistory.prepend(phrase);
 
@@ -554,7 +554,17 @@ void MainWindow::search()
 
     m_searchComboBox->clear();
     m_searchComboBox->addItems(m_searchHistory);
-    fetchSearchResults(phrase, false);
+
+    if (phrase == m_searchPhrase) {
+        if (!m_searchResultsVisible) {
+            toggleSearchResults();
+        }
+
+        refreshProgrammes();
+    }
+    else {
+        fetchSearchResults(phrase);
+    }
 }
 
 void MainWindow::toggleSearchResults()
@@ -779,13 +789,9 @@ void MainWindow::fetchProgrammes(int channelId, const QDate &date, bool refresh)
     }
 }
 
-void MainWindow::fetchSearchResults(const QString &phrase, bool refresh)
+void MainWindow::fetchSearchResults(const QString &phrase)
 {
     if (!m_client->isValidUsernameAndPassword()) {
-        return;
-    }
-
-    if (!refresh && (phrase == m_searchPhrase)) {
         return;
     }
 
