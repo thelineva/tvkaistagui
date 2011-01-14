@@ -47,7 +47,7 @@ void DownloadDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
         int x = option.rect.width() -  2 * PADDING - m_pixmap.width();
 
         if (x > bounding.right()) {
-            painter->drawPixmap(x, y, m_pixmap);
+            painter->drawPixmap(x, y + (bounding.height() - 16) / 2, m_pixmap);
         }
     }
 
