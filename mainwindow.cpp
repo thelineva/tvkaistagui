@@ -973,7 +973,10 @@ void MainWindow::updateFontSize()
 
     updateColumnSizes();
 
-    int lineHeight = ui->downloadsTableView->fontMetrics().height() * 2 + 23;
+    int lineHeight = ui->programmeTableView->fontMetrics().height() + 4;
+    ui->programmeTableView->verticalHeader()->setDefaultSectionSize(lineHeight);
+
+    lineHeight = ui->downloadsTableView->fontMetrics().height() * 2 + 23;
     ui->downloadsTableView->verticalHeader()->setDefaultSectionSize(lineHeight);
 
     QLabel* labels1[] = {ui->sh1Label, ui->sh2Label, ui->sh3Label, ui->sh4Label, ui->sh5Label,
@@ -1086,7 +1089,7 @@ void MainWindow::updateCalendar()
 
         /* Väritetään seuraava viikko */
         date = currentDate;
-        textFormat.setBackground(QColor(246, 206, 206));
+        textFormat.setBackground(QColor(248, 224, 224));
 
         for (int i = 0; i < 7; i++) {
             date = date.addDays(1);
@@ -1095,6 +1098,7 @@ void MainWindow::updateCalendar()
 
         /* Väritetään kuluva päivä */
         textFormat.setBackground(QColor(172, 250, 88));
+        textFormat.setForeground(Qt::black);
         textFormat.setFontWeight(QFont::Bold);
         ui->calendarWidget->setDateTextFormat(currentDate, textFormat);
 
