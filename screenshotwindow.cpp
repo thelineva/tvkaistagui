@@ -109,6 +109,8 @@ TvkaistaClient* ScreenshotWindow::client() const
 void ScreenshotWindow::fetchScreenshots(const Programme &programme)
 {
     m_programme = programme;
+    m_numErrors = 0;
+    m_thumbnails.clear();
     ui->listWidget->clear();
     ui->actionStop->setEnabled(true);
     ui->statusLabel->setText(trUtf8("Haetaan kuvakaappauksia..."));
@@ -212,7 +214,7 @@ void ScreenshotWindow::thumbnailRequestFinished()
         }
 
         QUrl url = m_reply->attribute(QNetworkRequest::RedirectionTargetAttribute).toUrl();
-        qDebug() << "Redirected to" << url;
+        qDebug() << "Redirected to" << url.toString();
         m_reply = m_client->sendThumbnailRequest(url);
         connect(m_reply, SIGNAL(error(QNetworkReply::NetworkError)), SLOT(networkError(QNetworkReply::NetworkError)));
         connect(m_reply, SIGNAL(finished()), SLOT(thumbnailRequestFinished()));
@@ -243,14 +245,27 @@ void ScreenshotWindow::thumbnailRequestFinished()
 
 void ScreenshotWindow::networkError(QNetworkReply::NetworkError error)
 {
+    if (error == QNetworkReply::OperationCanceledError || m_reply == 0) {
+        return;
+    }
+
     if (m_thumbnails.isEmpty() && error == QNetworkReply::ContentNotFoundError) {
+        screenshotsNotFound();
+        return;
+    }
+
+    if (++m_numErrors >= 3) {
+        stopDownloading();
         screenshotsNotFound();
         return;
     }
 
     QString errorString = TvkaistaClient::networkErrorString(error);
     qWarning() << errorString;
-    ui->statusLabel->setText(trUtf8("Virhe: %1").arg(errorString));
+
+    if (error != QNetworkReply::ContentNotFoundError) {
+        ui->statusLabel->setText(trUtf8("Virhe: %1").arg(errorString));
+    }
 }
 
 void ScreenshotWindow::fetchNextScreenshot()

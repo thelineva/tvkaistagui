@@ -51,6 +51,7 @@ private:
     QList<Thumbnail> m_thumbnails;
     QList<Thumbnail> m_queue;
     int m_redirections;
+    int m_numErrors;
     Programme m_programme;
 };
 
