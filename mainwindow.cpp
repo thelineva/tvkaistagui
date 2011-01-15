@@ -30,7 +30,9 @@ MainWindow::MainWindow(QWidget *parent) :
                    QCoreApplication::applicationName()),
     m_client(new TvkaistaClient(this)),
     m_downloadTableModel(new DownloadTableModel(&m_settings, this)),
-    m_programmeTableModel(new ProgrammeTableModel(this)),
+    m_programmeListTableModel(new ProgrammeTableModel(false, this)),
+    m_searchResultsTableModel(new ProgrammeTableModel(true, this)),
+    m_currentTableModel(m_programmeListTableModel),
     m_cache(new Cache), m_settingsDialog(0), m_screenshotWindow(0),
     m_currentChannelId(-1), m_searchIcon(":/images/list-22x22.png"),
     m_downloading(false), m_searchResultsVisible(false)
@@ -45,7 +47,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->downloadsTableView->addAction(ui->actionRemoveDownload);
     ui->downloadsTableView->setContextMenuPolicy(Qt::ActionsContextMenu);
     ui->downloadsTableView->setItemDelegateForColumn(0, new DownloadDelegate(this));
-    ui->programmeTableView->setModel(m_programmeTableModel);
+    ui->programmeTableView->setModel(m_programmeListTableModel);
     ui->programmeTableView->addAction(ui->actionWatch);
     ui->programmeTableView->addAction(ui->actionDownload);
     ui->programmeTableView->addAction(ui->actionRefresh);
@@ -191,14 +193,13 @@ MainWindow::MainWindow(QWidget *parent) :
     }
 
     int format = qBound(0, m_settings.value("format", 3).toInt(), formats.size() - 1);
-    m_formatComboBox->setCurrentIndex(format);
+    setFormat(format);
 
     m_cache->setDirectory(QDir(cacheDirPath));
     m_client->setUsername(m_settings.value("username").toString());
     m_client->setPassword(decodePassword(m_settings.value("password").toString()));
     m_client->setCookies(m_settings.value("cookies").toByteArray());
     m_client->setFormat(format);
-    m_programmeTableModel->setFormat(format);
     m_settings.endGroup();
 
     if (m_settings.value("version").toString() != APP_VERSION) {
@@ -340,11 +341,11 @@ void MainWindow::programmeSelectionChanged()
 {
     QModelIndexList rows = ui->programmeTableView->selectionModel()->selectedRows(0);
 
-    if (rows.isEmpty() || !m_programmeTableModel->infoText().isEmpty()) {
+    if (rows.isEmpty() || m_currentTableModel->programmeCount() == 0) {
         return;
     }
 
-    m_currentProgramme = m_programmeTableModel->programme(rows.at(0).row());
+    m_currentProgramme = m_currentTableModel->programme(rows.at(0).row());
     m_settings.beginGroup("mainWindow");
     bool posterVisible = m_settings.value("posterVisible", true).toBool();
     m_settings.endGroup();
@@ -384,8 +385,7 @@ void MainWindow::downloadSelectionChanged()
 
 void MainWindow::formatChanged()
 {
-    m_client->setFormat(m_formatComboBox->currentIndex());
-    m_programmeTableModel->setFormat(m_formatComboBox->currentIndex());
+    setFormat(m_formatComboBox->currentIndex());
 }
 
 void MainWindow::refreshProgrammes()
@@ -647,22 +647,25 @@ void MainWindow::toggleSearchResults()
     ui->actionProgrammeListButton->setChecked(!m_searchResultsVisible);
     ui->descriptionTextEdit->setPlainText(QString());
     m_currentProgramme.id = -1;
-    m_programmeTableModel->setDetailsVisible(m_searchResultsVisible);
-    QHeaderView *header = ui->programmeTableView->horizontalHeader();
-    header->setStretchLastSection(!m_searchResultsVisible);
+
+    QItemSelectionModel *selectionModel = ui->programmeTableView->selectionModel();
 
     if (m_searchResultsVisible) {
-        m_programmeTableModel->setProgrammes(m_searchResults);
-        int dateWidth = ui->programmeTableView->fontMetrics().width(trUtf8("00.00.0000__"));
-        int titleWidth = ui->programmeTableView->width() - header->sectionSize(0);
-        header->resizeSection(1, titleWidth);
-        header->resizeSection(2, dateWidth);
+        m_currentTableModel = m_searchResultsTableModel;
+        ui->programmeTableView->setModel(m_searchResultsTableModel);
     }
     else {
-        m_programmeTableModel->setProgrammes(QList<Programme>());
-        fetchProgrammes(m_currentChannelId, m_currentDate, false);
-        ui->programmeTableView->resizeColumnToContents(1);
+        m_currentTableModel = m_programmeListTableModel;
+        ui->programmeTableView->setModel(m_programmeListTableModel);
     }
+
+    delete selectionModel;
+    connect(ui->programmeTableView->selectionModel(),
+            SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
+            SLOT(programmeSelectionChanged()));
+
+    updateColumnSizes();
+    scrollProgrammes();
 }
 
 void MainWindow::toggleDownloadsDockWidget()
@@ -706,14 +709,14 @@ void MainWindow::programmesFetched(int channelId, const QDate &date, const QList
     }
 
     if (programmes.isEmpty()) {
-        m_programmeTableModel->setInfoText(trUtf8("Ohjelmatietoja ei ole saatavilla valitulle päivälle."));
+        m_programmeListTableModel->setInfoText(trUtf8("Ohjelmatietoja ei ole saatavilla valitulle päivälle."));
     }
     else {
-        m_programmeTableModel->setProgrammes(programmes);
-        ui->programmeTableView->resizeColumnToContents(1);
+        m_programmeListTableModel->setProgrammes(programmes);
     }
 
     stopLoadingAnimation();
+    updateColumnSizes();
     updateWindowTitle();
     updateCalendar();
     scrollProgrammes();
@@ -748,20 +751,14 @@ void MainWindow::streamUrlFetched(const Programme &programme, int format, const 
 
 void MainWindow::searchResultsFetched(const QList<Programme> &programmes)
 {
-    m_searchResults = programmes;
-
     if (programmes.isEmpty()) {
-        m_programmeTableModel->setInfoText(trUtf8("Ei hakutuloksia"));
+        m_searchResultsTableModel->setInfoText(trUtf8("Ei hakutuloksia"));
     }
     else {
-        m_programmeTableModel->setProgrammes(programmes);
+        m_searchResultsTableModel->setProgrammes(programmes);
+        updateColumnSizes();
         ui->programmeTableView->setFocus();
-        ui->programmeTableView->scrollToBottom();
-
-        QModelIndex modelIndex = m_programmeTableModel->index(programmes.size() - 1, 0, QModelIndex());
-        ui->programmeTableView->selectionModel()->select(modelIndex,
-            QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
-        ui->programmeTableView->setCurrentIndex(modelIndex);
+        scrollProgrammes();
     }
 
     stopLoadingAnimation();
@@ -844,9 +841,11 @@ void MainWindow::fetchProgrammes(int channelId, const QDate &date, bool refresh)
         if (m_searchResultsVisible) {
             toggleSearchResults();
         }
+        else {
+            updateColumnSizes();
+        }
 
-        m_programmeTableModel->setProgrammes(programmes);
-        ui->programmeTableView->resizeColumnToContents(1);
+        m_programmeListTableModel->setProgrammes(programmes);
         updateWindowTitle();
         updateCalendar();
         scrollProgrammes();
@@ -867,7 +866,6 @@ void MainWindow::fetchSearchResults(const QString &phrase)
 
     m_client->sendSearchRequest(phrase);
     m_searchPhrase = phrase;
-    m_searchResults = QList<Programme>();
     startLoadingAnimation();
 
     if (!m_searchResultsVisible) {
@@ -925,15 +923,33 @@ void MainWindow::updateFontSize()
     font = ui->sh1Label->font();
     font.setPointSize(size);
 
-    for (int i = 0; i < 9; i++) {
+    for (int i = 0; i < 10; i++) {
         labels1[i]->setFont(font);
     }
 
     font = ui->sh6Label->font();
     font.setPointSize(size);
 
-    for (int i = 0; i < 9; i++) {
+    for (int i = 0; i < 10; i++) {
         labels2[i]->setFont(font);
+    }
+}
+
+void MainWindow::updateColumnSizes()
+{
+    QHeaderView *header = ui->programmeTableView->horizontalHeader();
+    int timeWidth = ui->programmeTableView->fontMetrics().width(trUtf8("00.00AA"));
+
+    if (m_searchResultsVisible) {
+        int dateWidth = ui->programmeTableView->fontMetrics().width(trUtf8("AAA 00.00.0000AA"));
+        int titleWidth = ui->programmeTableView->width() - dateWidth - timeWidth - 20;
+        header->resizeSection(0, dateWidth);
+        header->resizeSection(1, timeWidth);
+        header->resizeSection(2, titleWidth);
+    }
+    else {
+        header->resizeSection(0, timeWidth);
+        ui->programmeTableView->resizeColumnToContents(1);
     }
 }
 
@@ -1021,21 +1037,39 @@ void MainWindow::updateCalendar()
     }
 }
 
+void MainWindow::setFormat(int format)
+{
+    m_formatComboBox->setCurrentIndex(format);
+    m_programmeListTableModel->setFormat(format);
+    m_searchResultsTableModel->setFormat(format);
+}
+
 void MainWindow::scrollProgrammes()
 {
-    int row = m_programmeTableModel->defaultProgrammeIndex();
+    if (m_searchResultsVisible) {
+        ui->programmeTableView->scrollToBottom();
 
-    if (row < 0) {
-        ui->programmeTableView->selectionModel()->clear();
-        ui->descriptionTextEdit->setPlainText(QString());
-        m_currentProgramme.id = -1;
+        QModelIndex modelIndex = m_searchResultsTableModel->index(
+                m_currentTableModel->rowCount(QModelIndex()) - 1, 0, QModelIndex());
+        ui->programmeTableView->selectionModel()->select(modelIndex,
+            QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
+        ui->programmeTableView->setCurrentIndex(modelIndex);
     }
     else {
-        QModelIndex index = m_programmeTableModel->index(row, 0, QModelIndex());
-        ui->programmeTableView->scrollTo(index, QAbstractItemView::PositionAtCenter);
-        ui->programmeTableView->selectionModel()->select(
-                index, QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
-        ui->programmeTableView->setCurrentIndex(index);
+        int row = m_currentTableModel->defaultProgrammeIndex();
+
+        if (row < 0) {
+            ui->programmeTableView->selectionModel()->clear();
+            ui->descriptionTextEdit->setPlainText(QString());
+            m_currentProgramme.id = -1;
+        }
+        else {
+            QModelIndex index = m_currentTableModel->index(row, 0, QModelIndex());
+            ui->programmeTableView->scrollTo(index, QAbstractItemView::PositionAtCenter);
+            ui->programmeTableView->selectionModel()->select(
+                    index, QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
+            ui->programmeTableView->setCurrentIndex(index);
+        }
     }
 }
 

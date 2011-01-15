@@ -8,17 +8,16 @@ class ProgrammeTableModel : public QAbstractTableModel
 {
     Q_OBJECT
 public:
-    ProgrammeTableModel(QObject *parent = 0);
+    ProgrammeTableModel(bool detailsVisible, QObject *parent = 0);
     int rowCount(const QModelIndex &parent) const;
     int columnCount(const QModelIndex &parent) const;
     QVariant data(const QModelIndex &index, int role) const;
     QVariant headerData(int section, Qt::Orientation orientation, int role) const;
     Qt::ItemFlags flags(const QModelIndex &index) const;
-    void setDetailsVisible(bool detailsVisible);
-    bool isDetailsVisible() const;
     void setFormat(int format);
     int format() const;
     void setProgrammes(const QList<Programme> &programmes);
+    int programmeCount() const;
     void setInfoText(const QString &text);
     QString infoText() const;
     Programme programme(int index) const;

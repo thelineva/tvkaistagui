@@ -1,8 +1,8 @@
 #include <QDebug>
 #include "programmetablemodel.h"
 
-ProgrammeTableModel::ProgrammeTableModel(QObject *parent) :
-    QAbstractTableModel(parent), m_detailsVisible(false),
+ProgrammeTableModel::ProgrammeTableModel(bool detailsVisible, QObject *parent) :
+    QAbstractTableModel(parent), m_detailsVisible(detailsVisible),
     m_format(3), m_flagMask(0x08)
 {
 }
@@ -23,8 +23,10 @@ QVariant ProgrammeTableModel::data(const QModelIndex &index, int role) const
 {
     int row = index.row();
 
-    if (!m_infoText.isEmpty() && role == Qt::DisplayRole && row == 0 && index.column() == 1) {
-        return m_infoText;
+    if (!m_infoText.isEmpty() && role == Qt::DisplayRole && row == 0) {
+        if ((m_detailsVisible && index.column() == 2) || (!m_detailsVisible && index.column() == 1)) {
+            return m_infoText;
+        }
     }
 
     if (row < 0 || row >= m_programmes.size()) {
@@ -34,24 +36,46 @@ QVariant ProgrammeTableModel::data(const QModelIndex &index, int role) const
     if (role == Qt::DisplayRole) {
         Programme programme = m_programmes.value(row);
 
-        switch (index.column()) {
-        case 0:
-            return programme.startDateTime.toString(tr("h.mm"));
+        if (m_detailsVisible) {
+            switch (index.column()) {
+            case 0:
+                return programme.startDateTime.toString(tr("ddd dd.MM.yyyy  "));
 
-        case 1:
-            return programme.title;
+            case 1:
+                return programme.startDateTime.toString(tr("h.mm"));
 
-        case 2:
-            return programme.startDateTime.toString(tr("d.M.yyyy"));
+            case 2:
+                return programme.title;
 
-        default:
-            return QVariant();
+            default:
+                return QVariant();
+            }
+        }
+        else {
+            switch (index.column()) {
+            case 0:
+                return programme.startDateTime.toString(tr("h.mm"));
+
+            case 1:
+                return programme.title;
+
+            default:
+                return QVariant();
+            }
+        }
+    }
+    else if (role == Qt::TextAlignmentRole) {
+        if (m_detailsVisible && index.column() == 0) {
+            return QVariant(Qt::AlignRight | Qt::AlignVCenter);
+        }
+        else {
+            return QVariant(Qt::AlignLeft | Qt::AlignVCenter);
         }
     }
     else if (role == Qt::ForegroundRole) {
         Programme programme = m_programmes.value(row);
 
-        if ((programme.flags & m_flagMask) > 0 || index.column() > 1) {
+        if ((programme.flags & m_flagMask) > 0) {
             return Qt::darkGray;
         }
     }
@@ -71,25 +95,6 @@ Qt::ItemFlags ProgrammeTableModel::flags(const QModelIndex &index) const
 {
     Q_UNUSED(index);
     return Qt::ItemIsSelectable | Qt::ItemIsEnabled;
-}
-
-void ProgrammeTableModel::setDetailsVisible(bool detailsVisible)
-{
-    if (!m_detailsVisible && detailsVisible) {
-        beginInsertColumns(QModelIndex(), 2, 2);
-        m_detailsVisible = true;
-        endInsertColumns();
-    }
-    else if (m_detailsVisible && !detailsVisible) {
-        beginRemoveColumns(QModelIndex(), 2, 2);
-        m_detailsVisible = false;
-        endRemoveColumns();
-    }
-}
-
-bool ProgrammeTableModel::isDetailsVisible() const
-{
-    return m_detailsVisible;
 }
 
 void ProgrammeTableModel::setFormat(int format)
@@ -139,6 +144,11 @@ void ProgrammeTableModel::setProgrammes(const QList<Programme> &programmes)
     }
 }
 
+int ProgrammeTableModel::programmeCount() const
+{
+    return m_programmes.size();
+}
+
 void ProgrammeTableModel::setInfoText(const QString &text)
 {
     if (text.isEmpty() && !m_infoText.isEmpty()) { /* Jos teksti poistettu */
@@ -148,7 +158,6 @@ void ProgrammeTableModel::setInfoText(const QString &text)
     }
     else if (!text.isEmpty() && m_infoText.isEmpty()) { /* Jos teksti lisätty */
         setProgrammes(QList<Programme>());
-        setDetailsVisible(false);
         beginInsertRows(QModelIndex(), 0, 0);
         m_infoText = text;
         endInsertRows();
