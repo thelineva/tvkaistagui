@@ -915,10 +915,10 @@ void MainWindow::updateFontSize()
     ui->downloadsTableView->verticalHeader()->setDefaultSectionSize(lineHeight);
 
     QLabel* labels1[] = {ui->sh1Label, ui->sh2Label, ui->sh3Label, ui->sh4Label, ui->sh5Label,
-                        ui->sh11Label, ui->sh12Label, ui->sh13Label, ui->sh14Label};
+                        ui->sh11Label, ui->sh12Label, ui->sh13Label, ui->sh14Label, ui->sh15label};
 
     QLabel* labels2[] = {ui->sh6Label, ui->sh7Label, ui->sh8Label, ui->sh9Label, ui->sh10Label,
-                         ui->sh15Label, ui->sh16Label, ui->sh17Label, ui->sh18Label};
+                         ui->sh16Label, ui->sh17Label, ui->sh18Label, ui->sh19Label, ui->sh20Label};
 
     font = ui->sh1Label->font();
     font.setPointSize(size);
