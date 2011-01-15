@@ -27,6 +27,9 @@
          <verstretch>5</verstretch>
         </sizepolicy>
        </property>
+       <property name="contextMenuPolicy">
+        <enum>Qt::CustomContextMenu</enum>
+       </property>
        <property name="tabKeyNavigation">
         <bool>false</bool>
        </property>
@@ -895,6 +898,38 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+D</string>
+   </property>
+  </action>
+  <action name="actionSortByTimeAsc">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Aika, nouseva</string>
+   </property>
+  </action>
+  <action name="actionSortByTimeDesc">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Aika, laskeva</string>
+   </property>
+  </action>
+  <action name="actionSortByTitleAsc">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Nimi, nouseva</string>
+   </property>
+  </action>
+  <action name="actionSortByTitleDesc">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Nimi, laskeva</string>
    </property>
   </action>
  </widget>

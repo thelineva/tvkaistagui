@@ -16,6 +16,9 @@ public:
     Qt::ItemFlags flags(const QModelIndex &index) const;
     void setFormat(int format);
     int format() const;
+    void setSortKey(int key, bool descending);
+    int sortKey() const;
+    bool isDescending() const;
     void setProgrammes(const QList<Programme> &programmes);
     int programmeCount() const;
     void setInfoText(const QString &text);
@@ -29,6 +32,8 @@ private:
     bool m_detailsVisible;
     int m_format;
     int m_flagMask;
+    int m_sortKey;
+    int m_descending;
 };
 
 #endif // PROGRAMMETABLEMODEL_H

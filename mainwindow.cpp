@@ -48,11 +48,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->downloadsTableView->setContextMenuPolicy(Qt::ActionsContextMenu);
     ui->downloadsTableView->setItemDelegateForColumn(0, new DownloadDelegate(this));
     ui->programmeTableView->setModel(m_programmeListTableModel);
-    ui->programmeTableView->addAction(ui->actionWatch);
-    ui->programmeTableView->addAction(ui->actionDownload);
-    ui->programmeTableView->addAction(ui->actionRefresh);
-    ui->programmeTableView->setContextMenuPolicy(Qt::ActionsContextMenu);
-    ui->programmeTableView->resizeColumnToContents(1);
     ui->channelListWidget->addAction(ui->actionRefreshChannels);
     ui->channelListWidget->setContextMenuPolicy(Qt::ActionsContextMenu);
     ui->calendarWidget->addAction(ui->actionCurrentDay);
@@ -101,6 +96,11 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->downloadsTableView->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)), SLOT(downloadSelectionChanged()));
     connect(ui->programmeTableView->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)), SLOT(programmeSelectionChanged()));
     connect(ui->programmeTableView, SIGNAL(activated(QModelIndex)), SLOT(programmeDoubleClicked()));
+    connect(ui->programmeTableView, SIGNAL(customContextMenuRequested(QPoint)), SLOT(programmeMenuRequested(QPoint)));
+    connect(ui->actionSortByTimeAsc, SIGNAL(triggered()), SLOT(sortByTimeAsc()));
+    connect(ui->actionSortByTimeDesc, SIGNAL(triggered()), SLOT(sortByTimeDesc()));
+    connect(ui->actionSortByTitleAsc, SIGNAL(triggered()), SLOT(sortByTitleAsc()));
+    connect(ui->actionSortByTitleDesc, SIGNAL(triggered()), SLOT(sortByTitleDesc()));
     connect(ui->channelListWidget, SIGNAL(currentRowChanged(int)), SLOT(channelClicked(int)));
     connect(ui->actionQuit, SIGNAL(triggered()), SLOT(close()));
     connect(ui->actionDownloads, SIGNAL(triggered()), SLOT(toggleDownloadsDockWidget()));
@@ -225,6 +225,13 @@ MainWindow::MainWindow(QWidget *parent) :
     m_settings.endArray();
     m_searchComboBox->addItems(m_searchHistory);
     m_searchComboBox->setCurrentIndex(-1);
+
+    QString sortKey = m_settings.value("sortProgrammes").toString();
+    if (sortKey == "timeAsc") sortByTimeAsc();
+    else if (sortKey == "titleAsc") sortByTitleAsc();
+    else if (sortKey == "titleDesc") sortByTitleDesc();
+    else sortByTimeDesc();
+
     m_settings.endGroup();
 
     m_currentDate = QDate::currentDate();
@@ -298,6 +305,17 @@ void MainWindow::closeEvent(QCloseEvent *e)
     }
 
     m_settings.endArray();
+
+    int sortKey = m_searchResultsTableModel->sortKey();
+    bool descending = m_searchResultsTableModel->isDescending();
+    QString sortKeyString;
+
+    if (sortKey == 1 && !descending) sortKeyString = "timeAsc";
+    else if (sortKey == 1 && descending) sortKeyString = "timeDesc";
+    else if (sortKey == 2 && !descending) sortKeyString = "titleAsc";
+    else if (sortKey == 2 && descending) sortKeyString = "titleDesc";
+
+    m_settings.setValue("sortProgrammes", sortKeyString);
     m_settings.endGroup();
 
     m_settings.beginGroup("client");
@@ -386,6 +404,31 @@ void MainWindow::downloadSelectionChanged()
 void MainWindow::formatChanged()
 {
     setFormat(m_formatComboBox->currentIndex());
+}
+
+void MainWindow::programmeMenuRequested(const QPoint &point)
+{
+    QMenu menu(this);
+    menu.addAction(ui->actionWatch);
+    menu.addAction(ui->actionDownload);
+    menu.addAction(ui->actionRefresh);
+
+    if (m_searchResultsVisible) {
+        int sortKey = m_searchResultsTableModel->sortKey();
+        bool descending = m_searchResultsTableModel->isDescending();
+        ui->actionSortByTimeAsc->setChecked(sortKey == 1 && !descending);
+        ui->actionSortByTimeDesc->setChecked(sortKey == 1 && descending);
+        ui->actionSortByTitleAsc->setChecked(sortKey == 2 && !descending);
+        ui->actionSortByTitleDesc->setChecked(sortKey == 2 && descending);
+
+        QMenu *sortMenu = menu.addMenu(trUtf8("Järjestä"));
+        sortMenu->addAction(ui->actionSortByTimeAsc);
+        sortMenu->addAction(ui->actionSortByTimeDesc);
+        sortMenu->addAction(ui->actionSortByTitleAsc);
+        sortMenu->addAction(ui->actionSortByTitleDesc);
+    }
+
+    menu.exec(ui->programmeTableView->mapToGlobal(point));
 }
 
 void MainWindow::refreshProgrammes()
@@ -613,6 +656,26 @@ void MainWindow::search()
     }
 }
 
+void MainWindow::sortByTimeAsc()
+{
+    m_searchResultsTableModel->setSortKey(1, false);
+}
+
+void MainWindow::sortByTimeDesc()
+{
+    m_searchResultsTableModel->setSortKey(1, true);
+}
+
+void MainWindow::sortByTitleAsc()
+{
+    m_searchResultsTableModel->setSortKey(2, false);
+}
+
+void MainWindow::sortByTitleDesc()
+{
+    m_searchResultsTableModel->setSortKey(2, true);
+}
+
 void MainWindow::showProgrammeList()
 {
     if (m_searchResultsVisible) {
@@ -665,6 +728,7 @@ void MainWindow::toggleSearchResults()
             SLOT(programmeSelectionChanged()));
 
     updateColumnSizes();
+    updateWindowTitle();
     scrollProgrammes();
 }
 
@@ -907,9 +971,7 @@ void MainWindow::updateFontSize()
     m_formatComboBox->setFont(font);
     m_searchComboBox->setFont(font);
 
-    int timeWidth = ui->programmeTableView->fontMetrics().boundingRect("00.00__").width();
-    ui->programmeTableView->verticalHeader()->setDefaultSectionSize(ui->programmeTableView->fontMetrics().height() + 4);
-    ui->programmeTableView->horizontalHeader()->resizeSection(0, timeWidth);
+    updateColumnSizes();
 
     int lineHeight = ui->downloadsTableView->fontMetrics().height() * 2 + 23;
     ui->downloadsTableView->verticalHeader()->setDefaultSectionSize(lineHeight);
@@ -995,6 +1057,9 @@ void MainWindow::updateWindowTitle()
         QString dateFormat = QLocale::system().dateFormat(QLocale::LongFormat);
         setWindowTitle(trUtf8("%1 - %2 %3").arg(QApplication::applicationName(), item->text(), m_currentDate.toString(dateFormat)));
     }
+    else if (m_searchResultsVisible && !m_searchPhrase.isEmpty()) {
+        setWindowTitle(trUtf8("%1 - Hakutulokset: %2").arg(QApplication::applicationName(), m_searchPhrase));
+    }
     else {
         setWindowTitle(QApplication::applicationName());
     }
@@ -1047,10 +1112,21 @@ void MainWindow::setFormat(int format)
 void MainWindow::scrollProgrammes()
 {
     if (m_searchResultsVisible) {
-        ui->programmeTableView->scrollToBottom();
+        if (m_searchResultsTableModel->programmeCount() == 0) {
+            return;
+        }
 
-        QModelIndex modelIndex = m_searchResultsTableModel->index(
-                m_currentTableModel->rowCount(QModelIndex()) - 1, 0, QModelIndex());
+        QModelIndex modelIndex = m_searchResultsTableModel->index(0, 0, QModelIndex());
+
+        if (m_searchResultsTableModel->sortKey() == 1 && !m_searchResultsTableModel->isDescending()) {
+            ui->programmeTableView->scrollToBottom();
+            modelIndex = m_searchResultsTableModel->index(
+                    m_currentTableModel->rowCount(QModelIndex()) - 1, 0, QModelIndex());
+        }
+        else {
+            ui->programmeTableView->scrollToTop();
+        }
+
         ui->programmeTableView->selectionModel()->select(modelIndex,
             QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
         ui->programmeTableView->setCurrentIndex(modelIndex);

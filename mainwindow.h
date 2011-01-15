@@ -46,6 +46,7 @@ private slots:
     void programmeSelectionChanged();
     void downloadSelectionChanged();
     void formatChanged();
+    void programmeMenuRequested(const QPoint &point);
     void refreshProgrammes();
     void goToCurrentDay();
     void goToPreviousDay();
@@ -63,6 +64,10 @@ private slots:
     void playDownloadedFile();
     void openDirectory();
     void search();
+    void sortByTimeAsc();
+    void sortByTimeDesc();
+    void sortByTitleAsc();
+    void sortByTitleDesc();
     void showProgrammeList();
     void showSearchResults();
     void toggleSearchResults();

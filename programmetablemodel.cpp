@@ -3,7 +3,7 @@
 
 ProgrammeTableModel::ProgrammeTableModel(bool detailsVisible, QObject *parent) :
     QAbstractTableModel(parent), m_detailsVisible(detailsVisible),
-    m_format(3), m_flagMask(0x08)
+    m_format(3), m_flagMask(0x08), m_sortKey(0), m_descending(false)
 {
 }
 
@@ -39,10 +39,10 @@ QVariant ProgrammeTableModel::data(const QModelIndex &index, int role) const
         if (m_detailsVisible) {
             switch (index.column()) {
             case 0:
-                return programme.startDateTime.toString(tr("ddd dd.MM.yyyy  "));
+                return programme.startDateTime.toString(tr("ddd dd.MM.yyyy "));
 
             case 1:
-                return programme.startDateTime.toString(tr("h.mm"));
+                return programme.startDateTime.toString(tr("h.mm "));
 
             case 2:
                 return programme.title;
@@ -65,7 +65,7 @@ QVariant ProgrammeTableModel::data(const QModelIndex &index, int role) const
         }
     }
     else if (role == Qt::TextAlignmentRole) {
-        if (m_detailsVisible && index.column() == 0) {
+        if (m_detailsVisible && index.column() < 2) {
             return QVariant(Qt::AlignRight | Qt::AlignVCenter);
         }
         else {
@@ -122,6 +122,27 @@ int ProgrammeTableModel::format() const
     return m_format;
 }
 
+void ProgrammeTableModel::setSortKey(int key, bool descending)
+{
+    m_sortKey = key;
+    m_descending = descending;
+
+    if (!m_programmes.isEmpty()) {
+        QList<Programme> copy = m_programmes;
+        setProgrammes(copy);
+    }
+}
+
+int ProgrammeTableModel::sortKey() const
+{
+    return m_sortKey;
+}
+
+bool ProgrammeTableModel::isDescending() const
+{
+    return m_descending;
+}
+
 void ProgrammeTableModel::setProgrammes(const QList<Programme> &programmes)
 {
     setInfoText(QString());
@@ -134,10 +155,40 @@ void ProgrammeTableModel::setProgrammes(const QList<Programme> &programmes)
 
     if (!programmes.isEmpty()) {
         beginInsertRows(QModelIndex(), 0, programmes.size() - 1);
+        QList<Programme> tmp;
         int count = programmes.size();
 
-        for (int i = 0; i < count; i++) {
-            m_programmes.append(programmes.at(i));
+        if (m_sortKey == 1) {
+            QMap<QPair<QDateTime, QString>, Programme> sortMap;
+
+            for (int i = 0; i < count; i++) {
+                Programme programme = programmes.at(i);
+                sortMap.insertMulti(QPair<QDateTime, QString>(programme.startDateTime, programme.title), programme);
+            }
+
+            tmp = sortMap.values();
+        }
+        else if (m_sortKey == 2) {
+            QMap<QPair<QString, QDateTime>, Programme> sortMap;
+
+            for (int i = 0; i < count; i++) {
+                Programme programme = programmes.at(i);
+                sortMap.insertMulti(QPair<QString, QDateTime>(programme.title, programme.startDateTime), programme);
+            }
+
+            tmp = sortMap.values();
+        }
+        else {
+            tmp = programmes;
+        }
+
+        if (m_descending) {
+            for (int i = count - 1; i >= 0; i--) {
+                m_programmes.append(tmp.at(i));
+            }
+        }
+        else {
+            m_programmes = tmp;
         }
 
         endInsertRows();
