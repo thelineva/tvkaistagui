@@ -34,9 +34,9 @@ private slots:
     void feedRequestFinished();
     void thumbnailRequestFinished();
     void networkError(QNetworkReply::NetworkError error);
+    void thumbnailsToQueue();
 
 private:
-    void thumbnailsToQueue();
     void fetchNextScreenshot();
     void startLoadingAnimation();
     void stopLoadingAnimation();

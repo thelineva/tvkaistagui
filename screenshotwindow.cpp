@@ -3,6 +3,7 @@
 #include <QMovie>
 #include <QComboBox>
 #include <QSettings>
+#include <QTimer>
 #include "programmefeedparser.h"
 #include "screenshotwindow.h"
 #include "tvkaistaclient.h"
@@ -130,6 +131,7 @@ void ScreenshotWindow::stopDownloading()
     }
 
     stopLoadingAnimation();
+    ui->actionStop->setEnabled(false);
     ui->statusLabel->setText(QString());
 }
 
@@ -137,8 +139,8 @@ void ScreenshotWindow::numScreenshotsChanged()
 {
     if (!m_thumbnails.isEmpty()) {
         ui->listWidget->clear();
-        thumbnailsToQueue();
-        fetchNextScreenshot();
+        stopDownloading();
+        QTimer::singleShot(0, this, SLOT(thumbnailsToQueue()));
     }
 }
 
@@ -162,7 +164,6 @@ void ScreenshotWindow::feedRequestFinished()
     }
     else {
         thumbnailsToQueue();
-        fetchNextScreenshot();
     }
 }
 
@@ -192,6 +193,9 @@ void ScreenshotWindow::thumbnailsToQueue()
     if (count > 1) {
         m_queue.append(m_thumbnails.at(count - 1));
     }
+
+    ui->actionStop->setEnabled(true);
+    fetchNextScreenshot();
 }
 
 void ScreenshotWindow::thumbnailRequestFinished()
