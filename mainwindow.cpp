@@ -193,6 +193,7 @@ MainWindow::MainWindow(QWidget *parent) :
     }
 
     int format = qBound(0, m_settings.value("format", 3).toInt(), formats.size() - 1);
+    m_formatComboBox->setCurrentIndex(format);
     setFormat(format);
 
     m_cache->setDirectory(QDir(cacheDirPath));
@@ -411,6 +412,7 @@ void MainWindow::programmeMenuRequested(const QPoint &point)
     QMenu menu(this);
     menu.addAction(ui->actionWatch);
     menu.addAction(ui->actionDownload);
+    menu.addAction(ui->actionScreenshots);
     menu.addAction(ui->actionRefresh);
 
     if (m_searchResultsVisible) {
@@ -1108,7 +1110,7 @@ void MainWindow::updateCalendar()
 
 void MainWindow::setFormat(int format)
 {
-    m_formatComboBox->setCurrentIndex(format);
+    m_client->setFormat(format);
     m_programmeListTableModel->setFormat(format);
     m_searchResultsTableModel->setFormat(format);
 }
