@@ -474,7 +474,7 @@ void MainWindow::watchProgramme()
     }
 
     if (m_formatComboBox->currentIndex() == 1) { /* Flash-video */
-        QString urlString = QString("http://www.tvkaista.fi/recordings/play/%1/4/1000000/")
+        QString urlString = QString("http://www.tvkaista.fi/embed/%1")
                             .arg(m_currentProgramme.id);
 
         startFlashStream(QUrl(urlString));
