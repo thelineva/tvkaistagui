@@ -1058,17 +1058,17 @@ void MainWindow::updateDescription()
 void MainWindow::updateWindowTitle()
 {
     QListWidgetItem *item = ui->channelListWidget->currentItem();
+    QString title;
 
     if (!m_searchResultsVisible && item != 0) {
         QString dateFormat = QLocale::system().dateFormat(QLocale::LongFormat);
-        setWindowTitle(trUtf8("%1 - %2 %3").arg(QApplication::applicationName(), item->text(), m_currentDate.toString(dateFormat)));
+        title = QString("%2 %3").arg(item->text(), m_currentDate.toString(dateFormat));
     }
     else if (m_searchResultsVisible && !m_searchPhrase.isEmpty()) {
-        setWindowTitle(trUtf8("%1 - Hakutulokset: %2").arg(QApplication::applicationName(), m_searchPhrase));
+        title = trUtf8("Hakutulokset: %2").arg(m_searchPhrase);
     }
-    else {
-        setWindowTitle(QApplication::applicationName());
-    }
+
+    ui->titleLabel->setText(title);
 }
 
 void MainWindow::updateCalendar()
