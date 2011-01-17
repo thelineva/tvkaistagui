@@ -204,7 +204,7 @@ MainWindow::MainWindow(QWidget *parent) :
     m_settings.endGroup();
 
     if (m_settings.value("version").toString() != APP_VERSION) {
-        ui->shortcutsDockWidget->setVisible(false);
+        ui->shortcutsDockWidget->setVisible(true);
     }
 
     m_settings.beginGroup("mainWindow");
