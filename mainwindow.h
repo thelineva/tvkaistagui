@@ -107,6 +107,7 @@ private:
     void startFile(const QString &filename);
     void startMediaPlayer(QStringList args);
     QStringList splitCommandLine(const QString &command);
+    static QString addDefaultOptionsToVlcCommand(const QString &command);
     Ui::MainWindow *ui;
     QComboBox *m_formatComboBox;
     QComboBox *m_searchComboBox;

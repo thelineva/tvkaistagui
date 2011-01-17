@@ -92,6 +92,24 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->actionProgrammeList->setChecked(true);
     ui->actionProgrammeListButton->setChecked(true);
 
+    QTextCharFormat textFormat;
+    textFormat.setForeground(QBrush(QColor(138, 8, 8), Qt::SolidPattern));
+    ui->calendarWidget->setWeekdayTextFormat(Qt::Saturday, textFormat);
+    ui->calendarWidget->setWeekdayTextFormat(Qt::Sunday, textFormat);
+
+    QWidget *calendarNavBar = ui->calendarWidget->findChild<QWidget*>("qt_calendar_navigationbar");
+
+    if (calendarNavBar) {
+        QPalette pal = calendarNavBar->palette();
+        QColor color = pal.color(QPalette::Normal, calendarNavBar->backgroundRole());
+        pal.setColor(calendarNavBar->backgroundRole(), color);
+        calendarNavBar->setPalette(pal);
+    }
+
+    QPalette palette = ui->calendarWidget->palette();
+    palette.setColor(QPalette::Highlight, QColor(164, 164, 164));
+    ui->calendarWidget->setPalette(palette);
+
     connect(ui->calendarWidget, SIGNAL(clicked(QDate)), SLOT(dateClicked(QDate)));
     connect(ui->calendarWidget, SIGNAL(activated(QDate)), SLOT(dateClicked(QDate)));
     connect(ui->downloadsTableView, SIGNAL(activated(QModelIndex)), SLOT(playDownloadedFile()));
@@ -204,8 +222,15 @@ MainWindow::MainWindow(QWidget *parent) :
     loadClientSettings();
     setFormat(format);
 
-    if (m_settings.value("version").toString() != APP_VERSION) {
+    QString version = m_settings.value("version").toString();
+
+    if (version.isEmpty() || version < APP_VERSION) {
         ui->shortcutsDockWidget->setVisible(true);
+
+        m_settings.beginGroup("mediaPlayer");
+        m_settings.setValue("stream", addDefaultOptionsToVlcCommand(m_settings.value("stream").toString()));
+        m_settings.setValue("file", addDefaultOptionsToVlcCommand(m_settings.value("file").toString()));
+        m_settings.endGroup();
     }
 
     m_settings.beginGroup("mainWindow");
@@ -997,6 +1022,10 @@ void MainWindow::updateFontSize()
     m_formatComboBox->setFont(font);
     m_searchComboBox->setFont(font);
 
+    font = ui->titleLabel->font();
+    font.setPointSize(size);
+    ui->titleLabel->setFont(font);
+
     updateColumnSizes();
 
     int lineHeight = ui->programmeTableView->fontMetrics().height() + 4;
@@ -1318,6 +1347,31 @@ QStringList MainWindow::splitCommandLine(const QString &command)
     return args;
 }
 
+QString MainWindow::addDefaultOptionsToVlcCommand(const QString &command)
+{
+    if (command.isEmpty()) {
+        return command;
+    }
+
+    QString s = command;
+    s.remove(" %F");
+
+    if (!s.contains("--sub-language")) {
+        s.append(" --sub-language=suomi");
+    }
+
+    if (!s.contains("--audio-language")) {
+        s.append(" --audio-language=Finnish,Swedish,English");
+    }
+
+    if (!s.contains("--video-filter=deinterlace")) {
+        s.append(" --video-filter=deinterlace");
+    }
+
+    s.append(" %F");
+    return s;
+}
+
 QString MainWindow::encodePassword(const QString &password)
 {
     return password.toUtf8().toBase64();
@@ -1354,7 +1408,9 @@ QString MainWindow::defaultStreamPlayerCommand()
         path.append('\'');
     }
 
-    path.append(" --fullscreen %F");
+    path.append(" --fullscreen --sub-language=suomi"
+                " --audio-language=Finnish,Swedish,English"
+                " --video-filter=deinterlace %F");
     return path;
 }
 
