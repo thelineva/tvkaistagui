@@ -17,7 +17,7 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>2</number>
      </property>
      <widget class="QWidget" name="tvkaistaTab">
       <attribute name="title">
@@ -293,7 +293,7 @@
          <property name="title">
           <string>Ohjelmat</string>
          </property>
-         <layout class="QFormLayout" name="formLayout_3">
+         <layout class="QFormLayout" name="formLayout">
           <item row="0" column="0">
            <widget class="QLabel" name="streamPlayerLabel">
             <property name="text">
@@ -305,7 +305,18 @@
            </widget>
           </item>
           <item row="0" column="1">
-           <widget class="QLineEdit" name="streamPlayerLineEdit"/>
+           <layout class="QHBoxLayout" name="horizontalLayout_7">
+            <item>
+             <widget class="QLineEdit" name="streamPlayerLineEdit"/>
+            </item>
+            <item>
+             <widget class="QToolButton" name="streamPlayerToolButton">
+              <property name="text">
+               <string>...</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
           <item row="1" column="0">
            <widget class="QLabel" name="filePlayerLabel">
@@ -318,7 +329,18 @@
            </widget>
           </item>
           <item row="1" column="1">
-           <widget class="QLineEdit" name="filePlayerLineEdit"/>
+           <layout class="QHBoxLayout" name="horizontalLayout_6">
+            <item>
+             <widget class="QLineEdit" name="filePlayerLineEdit"/>
+            </item>
+            <item>
+             <widget class="QToolButton" name="filePlayerToolButton">
+              <property name="text">
+               <string>...</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
           <item row="2" column="0">
            <widget class="QLabel" name="flashPlayerLabel">
@@ -331,7 +353,18 @@
            </widget>
           </item>
           <item row="2" column="1">
-           <widget class="QLineEdit" name="flashPlayerLineEdit"/>
+           <layout class="QHBoxLayout" name="horizontalLayout_5">
+            <item>
+             <widget class="QLineEdit" name="flashPlayerLineEdit"/>
+            </item>
+            <item>
+             <widget class="QToolButton" name="flashPlayerToolButton">
+              <property name="text">
+               <string>...</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
          </layout>
         </widget>

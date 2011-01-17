@@ -4,6 +4,7 @@
 #include <QSettings>
 #include <QUrl>
 #include "mainwindow.h"
+#include "texteditordialog.h"
 #include "settingsdialog.h"
 #include "ui_settingsdialog.h"
 
@@ -16,6 +17,9 @@ SettingsDialog::SettingsDialog(QSettings *settings, QWidget *parent) :
     connect(ui->recoverCommandLinkButton, SIGNAL(clicked()), SLOT(recoverPassword()));
     connect(ui->orderCommandLinkButton, SIGNAL(clicked()), SLOT(orderTVkaista()));
     connect(ui->advancedPushButton, SIGNAL(toggled(bool)), SLOT(toggleAdvancedSettings(bool)));
+    connect(ui->filePlayerToolButton, SIGNAL(clicked()), SLOT(editFilePlayerPath()));
+    connect(ui->streamPlayerToolButton, SIGNAL(clicked()), SLOT(editStreamPlayerPath()));
+    connect(ui->flashPlayerToolButton, SIGNAL(clicked()), SLOT(editFlashPlayerPath()));
     QStringList fontSizeOptions;
     fontSizeOptions << trUtf8("Pieni") << trUtf8("Normaali") << trUtf8("Suuri") << trUtf8("Erittäin suuri");
     QStringList doubleClickOptions;
@@ -94,6 +98,36 @@ void SettingsDialog::toggleAdvancedSettings(bool checked)
     ui->proxyPortSpinBox->setVisible(checked);
 }
 
+void SettingsDialog::editFilePlayerPath()
+{
+    TextEditorDialog dialog(this);
+    dialog.setText(ui->filePlayerLineEdit->text());
+
+    if (dialog.exec() == QDialog::Accepted) {
+        ui->filePlayerLineEdit->setText(dialog.text());
+    }
+}
+
+void SettingsDialog::editStreamPlayerPath()
+{
+    TextEditorDialog dialog(this);
+    dialog.setText(ui->streamPlayerLineEdit->text());
+
+    if (dialog.exec() == QDialog::Accepted) {
+        ui->streamPlayerLineEdit->setText(dialog.text());
+    }
+}
+
+void SettingsDialog::editFlashPlayerPath()
+{
+    TextEditorDialog dialog(this);
+    dialog.setText(ui->flashPlayerLineEdit->text());
+
+    if (dialog.exec() == QDialog::Accepted) {
+        ui->flashPlayerLineEdit->setText(dialog.text());
+    }
+}
+
 void SettingsDialog::loadSettings()
 {
     m_settings->beginGroup("client");
@@ -154,8 +188,11 @@ void SettingsDialog::loadSettings()
     }
 
     ui->streamPlayerLineEdit->setText(streamCommand);
+    ui->streamPlayerLineEdit->setCursorPosition(0);
     ui->filePlayerLineEdit->setText(fileCommand);
+    ui->filePlayerLineEdit->setCursorPosition(0);
     ui->flashPlayerLineEdit->setText(flashCommand);
+    ui->flashPlayerLineEdit->setCursorPosition(0);
 }
 
 void SettingsDialog::saveSettings()

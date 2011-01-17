@@ -24,6 +24,9 @@ private slots:
     void recoverPassword();
     void orderTVkaista();
     void toggleAdvancedSettings(bool checked);
+    void editFilePlayerPath();
+    void editStreamPlayerPath();
+    void editFlashPlayerPath();
 
 private:
     void loadSettings();
