@@ -32,6 +32,9 @@ void DownloadDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
 
     painter->setFont(option.font);
     painter->setPen(painter->pen().color().lighter(200));
+    painter->drawText(QRect(bounding.right() + 10, 0, option.rect.width() - PADDING, INT_MAX),
+                      Qt::AlignLeft | Qt::TextDontClip, index.data(Qt::UserRole + 5).toString(), &bounding);
+
     int y = bounding.bottom() + 3;
 
     painter->drawText(QRect(0, y, option.rect.width() - PADDING, INT_MAX),
@@ -66,6 +69,7 @@ QSize DownloadDelegate::sizeHint(const QStyleOptionViewItem &option, const QMode
     titleFont.setBold(true);
     QFontMetrics metrics(titleFont, 0);
     int width = metrics.width(index.data().toString()) + 2 * PADDING;
+    width += option.fontMetrics.width(index.data(Qt::UserRole + 5).toString()) + 10;
     width = qMax(width, option.fontMetrics.width(index.data(Qt::UserRole + 1).toString()) + 2 * PADDING);
     int status = index.data(Qt::UserRole + 1).toInt();
     int lineCount = (status == 0 || status == 3) ? 3 : 2;

@@ -35,6 +35,7 @@ public:
     static QString defaultFilePlayerCommand();
     static QString defaultDownloadDirectory();
     static QString defaultFilenameFormat();
+    static QString videoFormatName(int format);
 
 protected:
     void closeEvent(QCloseEvent *e);

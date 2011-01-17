@@ -1355,3 +1355,10 @@ QString MainWindow::defaultFilenameFormat()
 {
     return "%D_%A.%e";
 }
+
+QString MainWindow::videoFormatName(int format)
+{
+    QStringList formats;
+    formats << "300 kbps MP4" << "1 Mbps Flash" << "2 Mbps MP4" << "8 Mbps TS";
+    return formats.value(format);
+}

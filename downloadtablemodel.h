@@ -16,6 +16,8 @@ struct FileDownload
     QDateTime dateTime;
     QString description;
     QString filename;
+    QString format;
+    QString channelName;
     int status;
     Downloader *downloader;
 };
@@ -28,6 +30,7 @@ public:
     int rowCount(const QModelIndex &parent) const;
     int columnCount(const QModelIndex &parent) const;
     QVariant data(const QModelIndex &index, int role) const;
+    QString descriptionString(const FileDownload &download) const;
     QVariant headerData(int section, Qt::Orientation orientation, int role) const;
     Qt::ItemFlags flags(const QModelIndex &index) const;
     int download(const Programme &programme, int format, const QString &channelName, const QUrl &url);

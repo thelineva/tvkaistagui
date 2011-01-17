@@ -45,13 +45,31 @@ QVariant DownloadTableModel::data(const QModelIndex &index, int role) const
         return download.status;
 
     case Qt::UserRole + 2:
-        return download.dateTime.toString(tr("ddd d.M.yyyy 'klo' h.mm"));
+        return descriptionString(download);
 
     case Qt::UserRole + 3:
         return download.description;
+
+    case Qt::UserRole + 4:
+        return download.channelName;
+
+    case Qt::UserRole + 5:
+        return download.format;
     }
 
     return QVariant();
+}
+
+QString DownloadTableModel::descriptionString(const FileDownload &download) const
+{
+    QString s = download.dateTime.toString(tr("ddd d.M.yyyy 'klo' h.mm"));
+
+    if (!download.channelName.isEmpty()) {
+        s.append(", ");
+        s.append(download.channelName);
+    }
+
+    return s;
 }
 
 QVariant DownloadTableModel::headerData(int section, Qt::Orientation orientation, int role) const
@@ -120,6 +138,8 @@ int DownloadTableModel::download(const Programme &programme, int format, const Q
     download.dateTime = programme.startDateTime;
     download.status = 0;
     download.description = trUtf8("Ladataan");
+    download.format = MainWindow::videoFormatName(format);
+    download.channelName = channelName;
     download.downloader = downloader;
     m_downloads.append(download);
     endInsertRows();
@@ -230,6 +250,8 @@ bool DownloadTableModel::load()
         download.downloader = 0;
         download.status = attrs.value("status").toString().toInt();
         download.dateTime = QDateTime::fromString(attrs.value("dateTime").toString(), "yyyy-MM-dd'T'hh:mm:ss");
+        download.channelName = attrs.value("channel").toString();
+        download.format = attrs.value("format").toString();
 
         if (download.status == 3) {
             download.description = trUtf8("Epäonnistunut");
@@ -281,6 +303,8 @@ bool DownloadTableModel::save()
         writer.writeStartElement("programme");
         writer.writeAttribute("status", QString::number(download.status));
         writer.writeAttribute("dateTime", download.dateTime.toString("yyyy-MM-dd'T'hh:mm:ss"));
+        writer.writeAttribute("channel", download.channelName);
+        writer.writeAttribute("format", download.format);
         writer.writeTextElement("title", download.title);
         writer.writeTextElement("filename", download.filename);
         writer.writeEndElement(); // programme
