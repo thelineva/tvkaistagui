@@ -24,7 +24,8 @@ SOURCES += main.cpp \
     programmefeedparser.cpp \
     aboutdialog.cpp \
     screenshotwindow.cpp \
-    thumbnail.cpp
+    thumbnail.cpp \
+    texteditordialog.cpp
 HEADERS += mainwindow.h \
     tvkaistaclient.h \
     channelfeedparser.h \
@@ -41,14 +42,16 @@ HEADERS += mainwindow.h \
     programmefeedparser.h \
     aboutdialog.h \
     screenshotwindow.h \
-    thumbnail.h
+    thumbnail.h \
+    texteditordialog.h
 FORMS += mainwindow.ui \
     settingsdialog.ui \
     aboutdialog.ui \
-    screenshotwindow.ui
+    screenshotwindow.ui \
+    texteditordialog.ui
 RESOURCES += images.qrc
 RC_FILE = tvkaista.rc
 TRANSLATIONS = translations/qt_fi.ts
-VERSION = 1.1.1
+VERSION = 1.1.2
 DEFINES += APP_VERSION=\\\"$$VERSION\\\"
 unix:DEFINES += TVKAISTAGUI_TRANSLATIONS_DIR=\\\"/usr/share/tvkaistagui/translations\\\"
