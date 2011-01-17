@@ -192,7 +192,7 @@ MainWindow::MainWindow(QWidget *parent) :
         cacheDirPath = QString("%1/cache").arg(QFileInfo(m_settings.fileName()).path());
     }
 
-    int format = qBound(0, m_settings.value("format", 3).toInt(), formats.size() - 1);
+    int format = qBound(0, m_settings.value("format", 1).toInt(), formats.size() - 1);
     m_formatComboBox->setCurrentIndex(format);
     setFormat(format);
 
