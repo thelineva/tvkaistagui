@@ -6,6 +6,7 @@
 #include <QLineEdit>
 #include <QMessageBox>
 #include <QMovie>
+#include <QNetworkProxy>
 #include <QPainter>
 #include <QProcess>
 #include <QSignalMapper>
@@ -39,6 +40,7 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     m_client->setCache(m_cache);
+    m_downloadTableModel->setClient(m_client);
     ui->calendarWidget->setFirstDayOfWeek(Qt::Monday);
     ui->downloadsTableView->setModel(m_downloadTableModel);
     ui->downloadsTableView->addAction(ui->actionPlayFile);
@@ -193,15 +195,14 @@ MainWindow::MainWindow(QWidget *parent) :
     }
 
     int format = qBound(0, m_settings.value("format", 1).toInt(), formats.size() - 1);
-    m_formatComboBox->setCurrentIndex(format);
-    setFormat(format);
-
-    m_cache->setDirectory(QDir(cacheDirPath));
-    m_client->setUsername(m_settings.value("username").toString());
-    m_client->setPassword(decodePassword(m_settings.value("password").toString()));
     m_client->setCookies(m_settings.value("cookies").toByteArray());
     m_client->setFormat(format);
     m_settings.endGroup();
+
+    m_cache->setDirectory(QDir(cacheDirPath));
+    m_formatComboBox->setCurrentIndex(format);
+    loadClientSettings();
+    setFormat(format);
 
     if (m_settings.value("version").toString() != APP_VERSION) {
         ui->shortcutsDockWidget->setVisible(true);
@@ -539,10 +540,7 @@ void MainWindow::settingsAccepted()
 {
     m_settingsDialog->deleteLater();
     m_settingsDialog = 0;
-    m_settings.beginGroup("client");
-    m_client->setUsername(m_settings.value("username").toString());
-    m_client->setPassword(decodePassword(m_settings.value("password").toString()));
-    m_settings.endGroup();
+    loadClientSettings();
     updateFontSize();
 
     if (m_channels.isEmpty()) {
@@ -956,6 +954,31 @@ bool MainWindow::fetchPoster()
     }
 
     return true;
+}
+
+void MainWindow::loadClientSettings()
+{
+    m_settings.beginGroup("client");
+    m_client->setUsername(m_settings.value("username").toString());
+    m_client->setPassword(decodePassword(m_settings.value("password").toString()));
+
+    m_settings.beginGroup("proxy");
+    QNetworkProxy proxy;
+    proxy.setHostName(m_settings.value("host").toString());
+    proxy.setPort(qBound(0, m_settings.value("port", 8080).toInt(), 65535));
+
+    if (proxy.hostName().isEmpty()) {
+        qDebug() << "NoProxy";
+        proxy.setType(QNetworkProxy::NoProxy);
+    }
+    else {
+        qDebug() << "Proxy" << proxy.hostName() << proxy.port();
+        proxy.setType(QNetworkProxy::HttpProxy);
+    }
+
+    m_client->setProxy(proxy);
+    m_settings.endGroup();
+    m_settings.endGroup();
 }
 
 void MainWindow::updateFontSize()

@@ -1,14 +1,14 @@
 #include <QDebug>
 #include <QDir>
 #include <QFileInfo>
-#include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QUrl>
 #include "downloader.h"
+#include "tvkaistaclient.h"
 
-Downloader::Downloader(QObject *parent) :
-    QObject(parent), m_networkAccessManager(new QNetworkAccessManager(this)),
-    m_reply(0), m_bytesReceived(0), m_bytesTotal(-1), m_finished(false)
+Downloader::Downloader(TvkaistaClient *client, QObject *parent) :
+    QObject(parent), m_client(client), m_reply(0),
+    m_bytesReceived(0), m_bytesTotal(-1), m_finished(false)
 {
     m_buf = new char[4096];
 }
@@ -21,9 +21,7 @@ Downloader::~Downloader()
 void Downloader::start(const QUrl &url)
 {
     abort();
-    qDebug() << "GET" << url;
-    QNetworkRequest request(url);
-    m_reply = m_networkAccessManager->get(request);
+    m_reply = m_client->sendRequest(url);
     connect(m_reply, SIGNAL(readyRead()), SLOT(replyReadyRead()));
     connect(m_reply, SIGNAL(finished()), SLOT(replyFinished()));
     connect(m_reply, SIGNAL(downloadProgress(qint64,qint64)), SLOT(replyDownloadProgress(qint64,qint64)));
@@ -109,10 +107,14 @@ void Downloader::replyReadyRead()
 
     int len = m_reply->read(m_buf, 4096);
 
-    if (!m_file.write(m_buf, len) < 0) {
-        m_error = m_file.errorString();
-        abort();
-        return;
+    while (len > 0) {
+        if (!m_file.write(m_buf, len) < 0) {
+            m_error = m_file.errorString();
+            abort();
+            break;
+        }
+
+        len = m_reply->read(m_buf, 4096);
     }
 }
 

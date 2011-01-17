@@ -7,6 +7,7 @@
 #include <QXmlStreamWriter>
 #include "mainwindow.h"
 #include "downloader.h"
+#include "tvkaistaclient.h"
 #include "downloadtablemodel.h"
 
 DownloadTableModel::DownloadTableModel(QSettings *settings, QObject *parent) :
@@ -86,6 +87,16 @@ Qt::ItemFlags DownloadTableModel::flags(const QModelIndex &index) const
     return Qt::ItemIsSelectable | Qt::ItemIsEnabled;
 }
 
+void DownloadTableModel::setClient(TvkaistaClient *client)
+{
+    m_client = client;
+}
+
+TvkaistaClient* DownloadTableModel::client() const
+{
+    return m_client;
+}
+
 int DownloadTableModel::download(const Programme &programme, int format, const QString &channelName, const QUrl &url)
 {
     m_settings->beginGroup("downloads");
@@ -124,7 +135,7 @@ int DownloadTableModel::download(const Programme &programme, int format, const Q
     filenameFormat.replace("%S", programme.startDateTime.toString("ss"));
     filenameFormat.replace("%e", extension);
 
-    Downloader *downloader = new Downloader(this);
+    Downloader *downloader = new Downloader(m_client, this);
     downloader->setFilename(QFileInfo(QString("%1/%2").arg(dirPath, filenameFormat)).absoluteFilePath());
     downloader->setFilenameFromReply(filenameFromReply);
     downloader->start(url);

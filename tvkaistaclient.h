@@ -28,6 +28,8 @@ public:
     QString password() const;
     void setCookies(const QByteArray &cookieString);
     QByteArray cookies() const;
+    void setProxy(const QNetworkProxy &proxy);
+    QNetworkProxy proxy() const;
     void setFormat(int format);
     int format() const;
     QString lastError() const;
@@ -39,7 +41,8 @@ public:
     void sendStreamRequest(const Programme &programme);
     void sendSearchRequest(const QString &phrase);
     QNetworkReply* sendDetailedFeedRequest(const Programme &programme);
-    QNetworkReply* sendThumbnailRequest(const QUrl &url);
+    QNetworkReply* sendRequest(const QUrl &url);
+    QNetworkReply* sendRequestWithAuthHeader(const QUrl &url);
     static QString networkErrorString(QNetworkReply::NetworkError error);
 
 signals:

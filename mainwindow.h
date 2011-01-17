@@ -90,6 +90,7 @@ private:
     void fetchProgrammes(int channelId, const QDate &date, bool refresh);
     void fetchSearchResults(const QString &phrase);
     bool fetchPoster();
+    void loadClientSettings();
     void updateFontSize();
     void updateColumnSizes();
     void updateChannelList();

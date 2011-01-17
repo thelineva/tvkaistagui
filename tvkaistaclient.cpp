@@ -2,6 +2,7 @@
 #include <QFile>
 #include <QNetworkAccessManager>
 #include <QNetworkCookieJar>
+#include <QNetworkProxy>
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QTimer>
@@ -76,6 +77,16 @@ QByteArray TvkaistaClient::cookies() const
     }
 
     return cookieString;
+}
+
+void TvkaistaClient::setProxy(const QNetworkProxy &proxy)
+{
+    m_networkAccessManager->setProxy(proxy);
+}
+
+QNetworkProxy TvkaistaClient::proxy() const
+{
+    return m_networkAccessManager->proxy();
 }
 
 void TvkaistaClient::setFormat(int format)
@@ -156,7 +167,14 @@ QNetworkReply* TvkaistaClient::sendDetailedFeedRequest(const Programme &programm
     return m_networkAccessManager->get(request);
 }
 
-QNetworkReply* TvkaistaClient::sendThumbnailRequest(const QUrl &url)
+QNetworkReply* TvkaistaClient::sendRequest(const QUrl &url)
+{
+    qDebug() << "GET" << url.toString();
+    QNetworkRequest request(url);
+    return m_networkAccessManager->get(request);
+}
+
+QNetworkReply* TvkaistaClient::sendRequestWithAuthHeader(const QUrl &url)
 {
     qDebug() << "GET" << url.toString();
     QNetworkRequest request(url);

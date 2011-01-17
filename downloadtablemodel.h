@@ -7,6 +7,7 @@
 #include "programme.h"
 
 class Downloader;
+class TvkaistaClient;
 class QSettings;
 class QTimer;
 
@@ -33,6 +34,8 @@ public:
     QString descriptionString(const FileDownload &download) const;
     QVariant headerData(int section, Qt::Orientation orientation, int role) const;
     Qt::ItemFlags flags(const QModelIndex &index) const;
+    void setClient(TvkaistaClient *client);
+    TvkaistaClient* client() const;
     int download(const Programme &programme, int format, const QString &channelName, const QUrl &url);
     void abortDownload(int index);
     void abortAllDownloads();
@@ -56,6 +59,7 @@ private:
     QString toAscii(const QString &s);
     QString removeInvalidCharacters(const QString &s);
     QSettings *m_settings;
+    TvkaistaClient *m_client;
     QList<FileDownload> m_downloads;
     QTimer *m_timer;
 };

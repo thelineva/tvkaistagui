@@ -23,6 +23,7 @@ private slots:
     void openDirectoryDialog();
     void recoverPassword();
     void orderTVkaista();
+    void toggleAdvancedSettings(bool checked);
 
 private:
     void loadSettings();

@@ -6,13 +6,13 @@
 #include <QNetworkReply>
 #include <QUrl>
 
-class QNetworkAccessManager;
+class TvkaistaClient;
 
 class Downloader : public QObject
 {
 Q_OBJECT
 public:
-    Downloader(QObject *parent = 0);
+    Downloader(TvkaistaClient *client, QObject *parent = 0);
     ~Downloader();
     void start(const QUrl &url);
     void abort();
@@ -39,7 +39,7 @@ private slots:
 private:
     QString networkErrorString(QNetworkReply::NetworkError error);
     void appendSuffixToFilenameAndCreateDir();
-    QNetworkAccessManager *m_networkAccessManager;
+    TvkaistaClient *m_client;
     QNetworkReply *m_reply;
     char *m_buf;
     QFile m_file;

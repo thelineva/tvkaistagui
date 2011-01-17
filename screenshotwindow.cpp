@@ -215,7 +215,7 @@ void ScreenshotWindow::thumbnailRequestFinished()
 
         QUrl url = m_reply->attribute(QNetworkRequest::RedirectionTargetAttribute).toUrl();
         qDebug() << "Redirected to" << url.toString();
-        m_reply = m_client->sendThumbnailRequest(url);
+        m_reply = m_client->sendRequestWithAuthHeader(url);
         connect(m_reply, SIGNAL(error(QNetworkReply::NetworkError)), SLOT(networkError(QNetworkReply::NetworkError)));
         connect(m_reply, SIGNAL(finished()), SLOT(thumbnailRequestFinished()));
         return;
@@ -278,7 +278,7 @@ void ScreenshotWindow::fetchNextScreenshot()
 
     Thumbnail thumbnail = m_queue.first();
     m_redirections = 0;
-    m_reply = m_client->sendThumbnailRequest(thumbnail.url);
+    m_reply = m_client->sendRequestWithAuthHeader(thumbnail.url);
     connect(m_reply, SIGNAL(error(QNetworkReply::NetworkError)), SLOT(networkError(QNetworkReply::NetworkError)));
     connect(m_reply, SIGNAL(finished()), SLOT(thumbnailRequestFinished()));
 }

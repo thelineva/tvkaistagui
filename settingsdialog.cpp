@@ -15,12 +15,14 @@ SettingsDialog::SettingsDialog(QSettings *settings, QWidget *parent) :
     connect(ui->downloadDirToolButton, SIGNAL(clicked()), SLOT(openDirectoryDialog()));
     connect(ui->recoverCommandLinkButton, SIGNAL(clicked()), SLOT(recoverPassword()));
     connect(ui->orderCommandLinkButton, SIGNAL(clicked()), SLOT(orderTVkaista()));
+    connect(ui->advancedPushButton, SIGNAL(toggled(bool)), SLOT(toggleAdvancedSettings(bool)));
     QStringList fontSizeOptions;
     fontSizeOptions << trUtf8("Pieni") << trUtf8("Normaali") << trUtf8("Suuri") << trUtf8("Erittäin suuri");
     QStringList doubleClickOptions;
     doubleClickOptions << trUtf8("Suoratoistetaan ohjelma") << trUtf8("Ladataan ohjelma");
     ui->fontSizeComboBox->addItems(fontSizeOptions);
     ui->doubleClickComboBox->addItems(doubleClickOptions);
+    toggleAdvancedSettings(false);
     loadSettings();
 }
 
@@ -83,11 +85,25 @@ void SettingsDialog::orderTVkaista()
     }
 }
 
+void SettingsDialog::toggleAdvancedSettings(bool checked)
+{
+    ui->advancedSettingsLine->setVisible(checked);
+    ui->proxyLabel->setVisible(checked);
+    ui->proxyHostLineEdit->setVisible(checked);
+    ui->proxyPortLabel->setVisible(checked);
+    ui->proxyPortSpinBox->setVisible(checked);
+}
+
 void SettingsDialog::loadSettings()
 {
     m_settings->beginGroup("client");
     ui->usernameLineEdit->setText(m_settings->value("username").toString());
     ui->passwordLineEdit->setText(MainWindow::decodePassword(m_settings->value("password").toString()));
+
+    m_settings->beginGroup("proxy");
+    ui->proxyHostLineEdit->setText(m_settings->value("host").toString());
+    ui->proxyPortSpinBox->setValue(m_settings->value("port", 8080).toInt());
+    m_settings->endGroup();
     m_settings->endGroup();
 
     m_settings->beginGroup("mainWindow");
@@ -147,6 +163,11 @@ void SettingsDialog::saveSettings()
     m_settings->beginGroup("client");
     m_settings->setValue("username", ui->usernameLineEdit->text());
     m_settings->setValue("password", MainWindow::encodePassword(ui->passwordLineEdit->text()));
+
+    m_settings->beginGroup("proxy");
+    m_settings->setValue("host", ui->proxyHostLineEdit->text());
+    m_settings->setValue("port", ui->proxyPortSpinBox->value());
+    m_settings->endGroup();
     m_settings->endGroup();
 
     m_settings->beginGroup("mainWindow");
