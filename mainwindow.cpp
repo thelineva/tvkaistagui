@@ -525,6 +525,7 @@ void MainWindow::openScreenshotWindow()
 void MainWindow::openSettingsDialog()
 {
     if (m_settingsDialog != 0) {
+        m_settingsDialog->show();
         m_settingsDialog->activateWindow();
         return;
     }
