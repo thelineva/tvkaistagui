@@ -416,7 +416,7 @@ void TvkaistaClient::addAuthHeaderToRequest(QNetworkRequest &request)
     QString concatenated(m_username);
     concatenated.append(':');
     concatenated.append(m_password);
-    QByteArray data = concatenated.toUtf8().toBase64();
+    QByteArray data = concatenated.toLatin1().toBase64();
     data.prepend("Basic ");
     request.setRawHeader("Authorization", data);
 }
@@ -427,7 +427,7 @@ void TvkaistaClient::abortRequest()
 
     if (reply != 0) {
         m_reply = 0;
-//        reply->abort();
+        reply->abort();
         reply->deleteLater();
     }
 
