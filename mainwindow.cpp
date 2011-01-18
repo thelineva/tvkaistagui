@@ -1311,7 +1311,7 @@ void MainWindow::startFlashStream(const QUrl &url)
             QMessageBox msgBox(this);
             msgBox.setWindowTitle(windowTitle());
             msgBox.setText(trUtf8("Web-selaimen avaaminen epäonnistui."));
-            msgBox.setIcon(QMessageBox::Information);
+            msgBox.setIcon(QMessageBox::Critical);
             msgBox.exec();
         }
 
@@ -1328,7 +1328,16 @@ void MainWindow::startFlashStream(const QUrl &url)
         args.replace(i, arg);
     }
 
-    startMediaPlayer(args);
+    QString program = QDir::fromNativeSeparators(args.takeFirst());
+    qDebug() << program << args;
+
+    if (!QProcess::startDetached(program, args)) {
+        QMessageBox msgBox(this);
+        msgBox.setWindowTitle(windowTitle());
+        msgBox.setText(trUtf8("Web-selaimen avaaminen epäonnistui. Tarkista asetukset."));
+        msgBox.setIcon(QMessageBox::Critical);
+        msgBox.exec();
+    }
 }
 
 void MainWindow::startFile(const QString &filename)
@@ -1359,12 +1368,50 @@ void MainWindow::startMediaPlayer(QStringList args)
     qDebug() << program << args;
 
     if (!QProcess::startDetached(program, args)) {
+        QString message = trUtf8("Soittimen käynnistys epäonnistui.");
+        QUrl url;
+
+#ifdef Q_OS_WIN
+        message.append("\n\n");
+        message.append(trUtf8("TV-ohjelmien katseluun tarvitaan VLC-mediasoitin. "
+                              "Ohjelman voi ladata ilmaiseksi osoitteesta\n\n"
+                              "http://www.videolan.org/vlc/download-windows.html\n"));
+        url = QUrl("http://www.videolan.org/vlc/download-windows.html");
+#endif
+
+#ifdef Q_OS_MAC
+        message.append("\n\n");
+        message.append(trUtf8("TV-ohjelmien katseluun tarvitaan VLC-mediasoitin. "
+                              "Ohjelman voi ladata ilmaiseksi osoitteesta\n\n"
+                              "http://www.videolan.org/vlc/download-macosx.html\n"));
+        url = QUrl("http://www.videolan.org/vlc/download-macosx.html");
+#endif
+
+#ifdef Q_OS_LINUX
+        message.append("\n\n");
+        message.append(trUtf8("TV-ohjelmien katseluun tarvitaan VLC-mediasoitin. "
+                              "Ohjelma löytyy pakettienhallinnasta hakusanalla vlc."));
+#endif
+
         QMessageBox msgBox(this);
         msgBox.setWindowTitle(windowTitle());
         msgBox.setIcon(QMessageBox::Critical);
-        msgBox.setText(trUtf8("Soittimen käynnistys epäonnistui. Tarkista asetukset."));
-        msgBox.setStandardButtons(QMessageBox::Ok);
-        msgBox.exec();
+
+        if (url.isEmpty()) {
+            msgBox.setText(message);
+            msgBox.setStandardButtons(QMessageBox::Ok);
+            msgBox.exec();
+        }
+        else {
+            message.append("\n");
+            message.append(trUtf8("Siirrytäänkö lataussivulle?"));
+            msgBox.setText(message);
+            msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+
+            if (msgBox.exec() == QMessageBox::Yes) {
+                QDesktopServices::openUrl(url);
+            }
+        }
     }
 }
 
@@ -1404,15 +1451,15 @@ QString MainWindow::addDefaultOptionsToVlcCommand(const QString &command)
     s.remove(" %F");
 
     if (!s.contains("--sub-language")) {
-        s.append(" --sub-language=suomi");
+        s.append(" --sub-language=fi");
     }
 
     if (!s.contains("--audio-language")) {
         s.append(" --audio-language=Finnish,Swedish,English");
     }
 
-    if (!s.contains("--video-filter=deinterlace")) {
-        s.append(" --video-filter=deinterlace");
+    if (!s.contains("deinterlace")) {
+        s.append(" --vout-filter=deinterlace --deinterlace-mode=linear");
     }
 
     s.append(" %F");
@@ -1455,9 +1502,9 @@ QString MainWindow::defaultStreamPlayerCommand()
         path.append('\'');
     }
 
-    path.append(" --fullscreen --sub-language=suomi"
+    path.append(" --fullscreen --sub-language=fi"
                 " --audio-language=Finnish,Swedish,English"
-                " --video-filter=deinterlace %F");
+                " --vout-filter=deinterlace --deinterlace-mode=linear %F");
     return path;
 }
 
