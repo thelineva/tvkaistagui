@@ -112,6 +112,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     QPalette palette = ui->calendarWidget->palette();
     palette.setColor(QPalette::Highlight, QColor(164, 164, 164));
+    palette.setColor(QPalette::HighlightedText, Qt::black);
     ui->calendarWidget->setPalette(palette);
 
     connect(ui->calendarWidget, SIGNAL(clicked(QDate)), SLOT(dateClicked(QDate)));
@@ -647,7 +648,7 @@ void MainWindow::playDownloadedFile()
     }
 
     int row = indexes.at(0).row();
-    QString filename = m_downloadTableModel->filename(row);
+    QString filename = QDir::toNativeSeparators(m_downloadTableModel->filename(row));
     int format = m_downloadTableModel->videoFormat(row);
     m_settings.beginGroup("mediaPlayer");
     QString command = m_settings.value("file").toString();
@@ -1096,6 +1097,7 @@ void MainWindow::updateFontSize()
 
     lineHeight = ui->downloadsTableView->fontMetrics().height() * 2 + 23;
     ui->downloadsTableView->verticalHeader()->setDefaultSectionSize(lineHeight);
+    ui->downloadsTableView->resizeRowsToContents();
 
     QLabel* labels1[] = {ui->sh1Label, ui->sh2Label, ui->sh3Label, ui->sh4Label, ui->sh5Label,
                         ui->sh11Label, ui->sh12Label, ui->sh13Label, ui->sh14Label, ui->sh15label};
@@ -1176,8 +1178,7 @@ void MainWindow::updateWindowTitle()
     QString title;
 
     if (!m_searchResultsVisible && item != 0) {
-        QString dateFormat = QLocale::system().dateFormat(QLocale::LongFormat);
-        title = QString("%2 %3").arg(item->text(), m_currentDate.toString(dateFormat));
+        title = QString("%2 %3").arg(item->text(), m_currentDate.toString("ddd d. MMMM yyyy"));
     }
     else if (m_searchResultsVisible && !m_searchPhrase.isEmpty()) {
         title = trUtf8("Hakutulokset: %2").arg(m_searchPhrase);
