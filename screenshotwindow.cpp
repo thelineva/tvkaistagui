@@ -94,6 +94,7 @@ void ScreenshotWindow::closeEvent(QCloseEvent*)
     }
 
     m_settings->endGroup();
+    stopDownloading();
 }
 
 void ScreenshotWindow::setClient(TvkaistaClient *client)
