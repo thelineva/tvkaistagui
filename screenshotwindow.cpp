@@ -215,6 +215,7 @@ void ScreenshotWindow::thumbnailRequestFinished()
 
         QUrl url = m_reply->attribute(QNetworkRequest::RedirectionTargetAttribute).toUrl();
         qDebug() << "Redirected to" << url.toString();
+        changeHostToUrls(url.host());
         m_reply = m_client->sendRequestWithAuthHeader(url);
         connect(m_reply, SIGNAL(error(QNetworkReply::NetworkError)), SLOT(networkError(QNetworkReply::NetworkError)));
         connect(m_reply, SIGNAL(finished()), SLOT(thumbnailRequestFinished()));
@@ -301,4 +302,26 @@ void ScreenshotWindow::screenshotsNotFound()
     ui->statusLabel->setText(trUtf8("Kuvakaappauksia ei ole saatavilla valitulle ohjelmalle"));
     ui->actionStop->setEnabled(false);
     stopLoadingAnimation();
+}
+
+void ScreenshotWindow::changeHostToUrls(const QString &host)
+{
+    /* Muutetaan jonossa olevat osoitteet osoittamaan suoraan välimuistipalvelimelle, jotta
+       uudelleenohjauspyyntöjä ei tarvitse tehdä.
+
+       Ennen: http://www.tvkaista.fi/feedbeta/programs/9173255/metadata/thumbs/thumb-0014.png
+       Jälkeen: http://de-proxy.tvkaista.fi/metadata/9173255/thumbs/thumb-0014.png
+    */
+
+    QRegExp regexp("/(\\d+)/metadata/thumbs/(.+)$");
+    int count = m_queue.size();
+
+    for (int i = 0; i < count; i++) {
+        Thumbnail thumbnail = m_queue.at(i);
+
+        if (regexp.indexIn(thumbnail.url.path())) {
+            thumbnail.url = QUrl(QString("http://%1/metadata/%2/thumbs/%3").arg(host, regexp.cap(1), regexp.cap(2)));
+            m_queue.replace(i, thumbnail);
+        }
+    }
 }

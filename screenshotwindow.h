@@ -41,6 +41,7 @@ private:
     void startLoadingAnimation();
     void stopLoadingAnimation();
     void screenshotsNotFound();
+    void changeHostToUrls(const QString &host);
     Ui::ScreenshotWindow *ui;
     QSettings *m_settings;
     QLabel *m_loadLabel;
