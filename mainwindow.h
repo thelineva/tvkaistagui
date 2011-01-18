@@ -13,6 +13,7 @@ namespace Ui {
 
 class QComboBox;
 class QLabel;
+class QToolButton;
 class QSignalMapper;
 class Cache;
 class DownloadTableModel;
@@ -113,6 +114,7 @@ private:
     QComboBox *m_searchComboBox;
     QLabel *m_loadLabel;
     QMovie *m_loadMovie;
+    QToolButton *m_searchToolButton;
     QSettings m_settings;
     TvkaistaClient *m_client;
     DownloadTableModel *m_downloadTableModel;

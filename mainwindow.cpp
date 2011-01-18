@@ -65,9 +65,15 @@ MainWindow::MainWindow(QWidget *parent) :
     m_loadMovie->setFileName(":/images/load-32x32.gif");
     m_loadLabel = new QLabel(this);
     m_loadLabel->setMinimumSize(47, 32);
+    QAction *searchAction = new QAction(this);
+    searchAction->setText(trUtf8("Hae"));
+    m_searchToolButton = new QToolButton(this);
+    m_searchToolButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+    m_searchToolButton->setDefaultAction(searchAction);
     ui->toolBar->addWidget(m_formatComboBox);
     ui->toolBar->addWidget(new QLabel(tr("Haku"), this));
     ui->toolBar->addWidget(m_searchComboBox);
+    ui->toolBar->addWidget(m_searchToolButton);
     ui->toolBar->addWidget(m_loadLabel);
     ui->toolBar->setStyleSheet("QLabel { padding-left: 10px; padding-right: 5px; }");
     ui->splitter->setSizes(QList<int>() << 200 << 150);
@@ -154,6 +160,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionRefreshChannels, SIGNAL(triggered()), SLOT(refreshChannels()));
     connect(m_formatComboBox, SIGNAL(currentIndexChanged(int)), SLOT(formatChanged()));
     connect(m_searchComboBox, SIGNAL(activated(QString)), SLOT(search()));
+    connect(m_searchToolButton, SIGNAL(clicked()), SLOT(search()));
     connect(m_client, SIGNAL(channelsFetched(QList<Channel>)), SLOT(channelsFetched(QList<Channel>)));
     connect(m_client, SIGNAL(programmesFetched(int,QDate,QList<Programme>)), SLOT(programmesFetched(int,QDate,QList<Programme>)));
     connect(m_client, SIGNAL(posterFetched(Programme,QImage)), SLOT(posterFetched(Programme,QImage)));
@@ -224,7 +231,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     QString version = m_settings.value("version").toString();
 
-    if (version.isEmpty() || version < APP_VERSION) {
+    if (version.isEmpty() || version < "1.1.2") {
         ui->shortcutsDockWidget->setVisible(true);
 
         m_settings.beginGroup("mediaPlayer");
@@ -1019,6 +1026,9 @@ void MainWindow::updateFontSize()
     ui->descriptionTextEdit->setFont(font);
     ui->calendarWidget->setFont(font);
     ui->channelListWidget->setFont(font);
+    ui->watchPushButton->setFont(font);
+    ui->downloadPushButton->setFont(font);
+    ui->screenshotsPushButton->setFont(font);
     m_formatComboBox->setFont(font);
     m_searchComboBox->setFont(font);
 

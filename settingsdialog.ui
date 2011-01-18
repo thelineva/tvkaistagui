@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>470</width>
-    <height>459</height>
+    <height>465</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,7 +17,7 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>2</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="tvkaistaTab">
       <attribute name="title">
@@ -312,7 +312,7 @@
             <item>
              <widget class="QToolButton" name="streamPlayerToolButton">
               <property name="text">
-               <string>...</string>
+               <string>Muokkaa</string>
               </property>
              </widget>
             </item>
@@ -336,7 +336,7 @@
             <item>
              <widget class="QToolButton" name="filePlayerToolButton">
               <property name="text">
-               <string>...</string>
+               <string>Muokkaa</string>
               </property>
              </widget>
             </item>
@@ -360,7 +360,7 @@
             <item>
              <widget class="QToolButton" name="flashPlayerToolButton">
               <property name="text">
-               <string>...</string>
+               <string>Muokkaa</string>
               </property>
              </widget>
             </item>
@@ -393,7 +393,7 @@
             <item>
              <widget class="QToolButton" name="downloadDirToolButton">
               <property name="text">
-               <string>...</string>
+               <string>Selaa</string>
               </property>
              </widget>
             </item>

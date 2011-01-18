@@ -31,10 +31,10 @@ void DownloadDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
                       Qt::AlignLeft | Qt::TextDontClip, index.data().toString(), &bounding);
 
     painter->setFont(option.font);
-    painter->setPen(painter->pen().color().lighter(200));
     painter->drawText(QRect(bounding.right() + 10, 0, option.rect.width() - PADDING, INT_MAX),
                       Qt::AlignLeft | Qt::TextDontClip, index.data(Qt::UserRole + 5).toString(), &bounding);
 
+    painter->setPen(painter->pen().color().lighter(200));
     int y = bounding.bottom() + 3;
 
     painter->drawText(QRect(0, y, option.rect.width() - PADDING, INT_MAX),
