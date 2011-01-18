@@ -149,7 +149,7 @@ int DownloadTableModel::download(const Programme &programme, int format, const Q
     download.dateTime = programme.startDateTime;
     download.status = 0;
     download.description = trUtf8("Ladataan");
-    download.format = MainWindow::videoFormatName(format);
+    download.format = MainWindow::videoFormats().value(format);
     download.channelName = channelName;
     download.downloader = downloader;
     m_downloads.append(download);
@@ -231,6 +231,13 @@ QString DownloadTableModel::filename(int index) const
 int DownloadTableModel::status(int index) const
 {
     return m_downloads.at(index).status;
+}
+
+int DownloadTableModel::videoFormat(int index) const
+{
+    QString format = m_downloads.at(index).format;
+    QStringList formats = MainWindow::videoFormats();
+    return formats.indexOf(format);
 }
 
 bool DownloadTableModel::load()

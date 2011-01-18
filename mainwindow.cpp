@@ -91,9 +91,7 @@ MainWindow::MainWindow(QWidget *parent) :
     painter.fillRect(m_noPosterImage.rect(), QBrush(ui->descriptionTextEdit->palette().color(QPalette::Base)));
     painter.end();
 
-    QStringList formats;
-    formats << "300 kbps MP4" << "1 Mbps Flash" << "2 Mbps MP4" << "8 Mbps TS";
-    m_formatComboBox->addItems(formats);
+    m_formatComboBox->addItems(videoFormats());
 
     ui->actionProgrammeList->setChecked(true);
     ui->actionProgrammeListButton->setChecked(true);
@@ -225,7 +223,7 @@ MainWindow::MainWindow(QWidget *parent) :
         cacheDirPath = QString("%1/cache").arg(QFileInfo(m_settings.fileName()).path());
     }
 
-    int format = qBound(0, m_settings.value("format", 1).toInt(), formats.size() - 1);
+    int format = qBound(0, m_settings.value("format", 1).toInt(), videoFormats().size() - 1);
     m_client->setCookies(m_settings.value("cookies").toByteArray());
     m_client->setFormat(format);
     m_settings.endGroup();
@@ -648,8 +646,18 @@ void MainWindow::playDownloadedFile()
         return;
     }
 
-    QString filename = m_downloadTableModel->filename(indexes.at(0).row());
-    startFile(QDir::toNativeSeparators(filename));
+    int row = indexes.at(0).row();
+    QString filename = m_downloadTableModel->filename(row);
+    int format = m_downloadTableModel->videoFormat(row);
+    m_settings.beginGroup("mediaPlayer");
+    QString command = m_settings.value("file").toString();
+    m_settings.endGroup();
+
+    if (command.isEmpty()) {
+        command = defaultFilePlayerCommand();
+    }
+
+    startMediaPlayer(command, filename, format);
 }
 
 void MainWindow::openDirectory()
@@ -879,7 +887,15 @@ void MainWindow::streamUrlFetched(const Programme &programme, int format, const 
         ui->downloadsTableView->scrollTo(m_downloadTableModel->index(row, 0, QModelIndex()));
     }
     else {
-        startStream(url);
+        m_settings.beginGroup("mediaPlayer");
+        QString command = m_settings.value("stream").toString();
+        m_settings.endGroup();
+
+        if (command.isEmpty()) {
+            command = defaultStreamPlayerCommand();
+        }
+
+        startMediaPlayer(command, url.toString(), format);
     }
 }
 
@@ -1277,29 +1293,6 @@ void MainWindow::addBorderToPoster()
     m_posterImage = image;
 }
 
-void MainWindow::startStream(const QUrl &url)
-{
-    m_settings.beginGroup("mediaPlayer");
-    QString command = m_settings.value("stream").toString();
-    m_settings.endGroup();
-
-    if (command.isEmpty()) {
-        command = defaultStreamPlayerCommand();
-    }
-
-    QString urlString = url.toString();
-    QStringList args = splitCommandLine(command);
-    int count = args.size();
-
-    for (int i = 0; i < count; i++) {
-        QString arg = args.at(i);
-        arg = arg.replace("%F", urlString);
-        args.replace(i, arg);
-    }
-
-    startMediaPlayer(args);
-}
-
 void MainWindow::startFlashStream(const QUrl &url)
 {
     m_settings.beginGroup("mediaPlayer");
@@ -1340,30 +1333,23 @@ void MainWindow::startFlashStream(const QUrl &url)
     }
 }
 
-void MainWindow::startFile(const QString &filename)
+void MainWindow::startMediaPlayer(const QString &command, const QString &filename, int format)
 {
     m_settings.beginGroup("mediaPlayer");
-    QString command = m_settings.value("file").toString();
+    QString deinterlaceOptions = m_settings.value(
+            "deinterlaceOptions", "--vout-filter=deinterlace --deinterlace-mode=linear").toString();
     m_settings.endGroup();
 
-    if (command.isEmpty()) {
-        command = defaultFilePlayerCommand();
+    if (format != 3) {
+         /* Lomitus tarvitsee poistaa vain 8 Mbps videoformaatista */
+         deinterlaceOptions = QString();
     }
 
-    QStringList args = splitCommandLine(command);
-    int count = args.size();
+    QString s = command;
+    s.replace("%D", deinterlaceOptions);
+    s.replace("%F", filename);
 
-    for (int i = 0; i < count; i++) {
-        QString arg = args.at(i);
-        arg = arg.replace("%F", filename);
-        args.replace(i, arg);
-    }
-
-    startMediaPlayer(args);
-}
-
-void MainWindow::startMediaPlayer(QStringList args)
-{
+    QStringList args = splitCommandLine(s);
     QString program = QDir::fromNativeSeparators(args.takeFirst());
     qDebug() << program << args;
 
@@ -1429,7 +1415,7 @@ QStringList MainWindow::splitCommandLine(const QString &command)
             quotes = !quotes;
         }
         else if (!quotes && c == ' ') {
-            args.append(arg);
+            if (!arg.isEmpty()) args.append(arg);
             arg.clear();
         }
         else {
@@ -1437,7 +1423,7 @@ QStringList MainWindow::splitCommandLine(const QString &command)
         }
     }
 
-    args.append(arg);
+    if (!arg.isEmpty()) args.append(arg);
     return args;
 }
 
@@ -1458,11 +1444,7 @@ QString MainWindow::addDefaultOptionsToVlcCommand(const QString &command)
         s.append(" --audio-language=Finnish,Swedish,English");
     }
 
-    if (!s.contains("deinterlace")) {
-        s.append(" --vout-filter=deinterlace --deinterlace-mode=linear");
-    }
-
-    s.append(" %F");
+    s.append(" %D %F");
     return s;
 }
 
@@ -1504,7 +1486,7 @@ QString MainWindow::defaultStreamPlayerCommand()
 
     path.append(" --fullscreen --sub-language=fi"
                 " --audio-language=Finnish,Swedish,English"
-                " --vout-filter=deinterlace --deinterlace-mode=linear %F");
+                " %D %F");
     return path;
 }
 
@@ -1529,9 +1511,9 @@ QString MainWindow::defaultFilenameFormat()
     return "%D_%A.%e";
 }
 
-QString MainWindow::videoFormatName(int format)
+QStringList MainWindow::videoFormats()
 {
     QStringList formats;
     formats << "300 kbps MP4" << "1 Mbps Flash" << "2 Mbps MP4" << "8 Mbps TS";
-    return formats.value(format);
+    return formats;
 }

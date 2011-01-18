@@ -43,6 +43,7 @@ public:
     void removeDownload(int index);
     QString filename(int index) const;
     int status(int index) const;
+    int videoFormat(int index) const;
     bool load();
     bool save();
 

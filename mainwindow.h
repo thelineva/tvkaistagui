@@ -36,7 +36,7 @@ public:
     static QString defaultFilePlayerCommand();
     static QString defaultDownloadDirectory();
     static QString defaultFilenameFormat();
-    static QString videoFormatName(int format);
+    static QStringList videoFormats();
 
 protected:
     void closeEvent(QCloseEvent *e);
@@ -106,10 +106,8 @@ private:
     void startLoadingAnimation();
     void stopLoadingAnimation();
     void addBorderToPoster();
-    void startStream(const QUrl &url);
     void startFlashStream(const QUrl &url);
-    void startFile(const QString &filename);
-    void startMediaPlayer(QStringList args);
+    void startMediaPlayer(const QString &command, const QString &filename, int format);
     QStringList splitCommandLine(const QString &command);
     static QString addDefaultOptionsToVlcCommand(const QString &command);
     Ui::MainWindow *ui;
