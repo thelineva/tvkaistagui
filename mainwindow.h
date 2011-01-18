@@ -77,6 +77,8 @@ private slots:
     void toggleDownloadsDockWidget();
     void toggleShortcutsDockWidget();
     void selectChannel(int index);
+    void setFocusToCalendar();
+    void setFocusToChannelList();
     void channelsFetched(const QList<Channel> &channels);
     void programmesFetched(int channelId, const QDate &date, const QList<Programme> &programmes);
     void posterFetched(const Programme &programme, const QImage &poster);

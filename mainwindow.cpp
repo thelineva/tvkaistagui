@@ -178,12 +178,12 @@ MainWindow::MainWindow(QWidget *parent) :
 
     action = new QAction(this);
     action->setShortcut(Qt::Key_F3);
-    connect(action, SIGNAL(triggered()), ui->calendarWidget, SLOT(setFocus()));
+    connect(action, SIGNAL(triggered()), SLOT(setFocusToCalendar()));
     addAction(action);
 
     action = new QAction(this);
     action->setShortcut(Qt::Key_F4);
-    connect(action, SIGNAL(triggered()), ui->channelListWidget, SLOT(setFocus()));
+    connect(action, SIGNAL(triggered()), SLOT(setFocusToChannelList()));
     addAction(action);
 
     action = new QAction(this);
@@ -802,6 +802,24 @@ void MainWindow::selectChannel(int index)
 
     fetchProgrammes(m_channels.at(index).id, m_currentDate, false);
     ui->channelListWidget->setCurrentIndex(ui->channelListWidget->model()->index(index, 0, QModelIndex()));
+}
+
+void MainWindow::setFocusToCalendar()
+{
+    if (m_searchResultsVisible) {
+        toggleSearchResults();
+    }
+
+    ui->calendarWidget->setFocus();
+}
+
+void MainWindow::setFocusToChannelList()
+{
+    if (m_searchResultsVisible) {
+        toggleSearchResults();
+    }
+
+    ui->channelListWidget->setFocus();
 }
 
 void MainWindow::channelsFetched(const QList<Channel> &channels)
