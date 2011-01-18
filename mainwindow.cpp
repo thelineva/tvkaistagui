@@ -105,8 +105,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     if (calendarNavBar) {
         QPalette pal = calendarNavBar->palette();
-        QColor color = pal.color(QPalette::Normal, calendarNavBar->backgroundRole());
-        pal.setColor(calendarNavBar->backgroundRole(), color);
+        pal.setColor(calendarNavBar->backgroundRole(), pal.color(QPalette::Normal, calendarNavBar->backgroundRole()));
+        pal.setColor(calendarNavBar->foregroundRole(), pal.color(QPalette::Normal, calendarNavBar->foregroundRole()));
         calendarNavBar->setPalette(pal);
     }
 
@@ -234,17 +234,6 @@ MainWindow::MainWindow(QWidget *parent) :
     loadClientSettings();
     setFormat(format);
 
-    QString version = m_settings.value("version").toString();
-
-    if (version.isEmpty() || version < "1.1.2") {
-        ui->shortcutsDockWidget->setVisible(true);
-
-        m_settings.beginGroup("mediaPlayer");
-        m_settings.setValue("stream", addDefaultOptionsToVlcCommand(m_settings.value("stream").toString()));
-        m_settings.setValue("file", addDefaultOptionsToVlcCommand(m_settings.value("file").toString()));
-        m_settings.endGroup();
-    }
-
     m_settings.beginGroup("mainWindow");
     restoreGeometry(m_settings.value("geometry").toByteArray());
     restoreState(m_settings.value("state").toByteArray());
@@ -272,6 +261,17 @@ MainWindow::MainWindow(QWidget *parent) :
     else sortByTimeDesc();
 
     m_settings.endGroup();
+
+    QString version = m_settings.value("version").toString();
+
+    if (version.isEmpty() || version < "1.1.2") {
+        ui->shortcutsDockWidget->setVisible(true);
+
+        m_settings.beginGroup("mediaPlayer");
+        m_settings.setValue("stream", addDefaultOptionsToVlcCommand(m_settings.value("stream").toString()));
+        m_settings.setValue("file", addDefaultOptionsToVlcCommand(m_settings.value("file").toString()));
+        m_settings.endGroup();
+    }
 
     m_currentDate = QDate::currentDate();
     fetchChannels(false);
@@ -1178,7 +1178,12 @@ void MainWindow::updateWindowTitle()
     QString title;
 
     if (!m_searchResultsVisible && item != 0) {
-        title = QString("%2 %3").arg(item->text(), m_currentDate.toString("ddd d. MMMM yyyy"));
+        QString dateString = m_currentDate.toString("ddd d. MMMM yyyy");
+
+        /* Ubuntu Linuxissa kuukauden lopussa -ta, Windowsissa ei. Lisätään, jos puuttuu */
+        if (!dateString.contains("kuuta")) dateString.replace("kuu", "kuuta");
+
+        title = QString("%2 %3").arg(item->text(), dateString);
     }
     else if (m_searchResultsVisible && !m_searchPhrase.isEmpty()) {
         title = trUtf8("Hakutulokset: %2").arg(m_searchPhrase);
