@@ -66,6 +66,7 @@ private slots:
     void playDownloadedFile();
     void openDirectory();
     void search();
+    void clearSearchHistory();
     void sortByTimeAsc();
     void sortByTimeDesc();
     void sortByTitleAsc();

@@ -196,6 +196,12 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(action, SIGNAL(triggered()), m_searchComboBox, SLOT(setFocus()));
     addAction(action);
 
+    action = new QAction(this);
+    action->setShortcutContext(Qt::WidgetShortcut);
+    action->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_Delete));
+    connect(action, SIGNAL(triggered()), SLOT(clearSearchHistory()));
+    m_searchComboBox->addAction(action);
+
     QSignalMapper *signalMapper = new QSignalMapper(this);
     connect(signalMapper, SIGNAL(mapped(int)), SLOT(selectChannel(int)));
 
@@ -687,6 +693,19 @@ void MainWindow::search()
     else {
         fetchSearchResults(phrase);
     }
+}
+
+void MainWindow::clearSearchHistory()
+{
+    m_searchHistory.clear();
+    m_searchComboBox->clear();
+
+    QMessageBox msgBox(this);
+    msgBox.setWindowTitle(windowTitle());
+    msgBox.setIcon(QMessageBox::Information);
+    msgBox.setText(trUtf8("Hakuhistoria on tyhjennetty."));
+    msgBox.setStandardButtons(QMessageBox::Ok);
+    msgBox.exec();
 }
 
 void MainWindow::sortByTimeAsc()
