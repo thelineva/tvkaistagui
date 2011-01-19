@@ -122,7 +122,7 @@ void TvkaistaClient::sendLoginRequest()
 void TvkaistaClient::sendChannelRequest()
 {
     abortRequest();
-    QString urlString = "http://www.tvkaista.fi/feed/channels/";
+    QString urlString = "http://www.tvkaista.fi/feedbeta/channels/";
     qDebug() << "GET" << urlString;
     QUrl url(urlString);
     QNetworkRequest request(url);
@@ -215,7 +215,7 @@ void TvkaistaClient::sendStreamRequest(const Programme &programme)
 void TvkaistaClient::sendSearchRequest(const QString &phrase)
 {
     abortRequest();
-    QString urlString = QString("http://www.tvkaista.fi/feed/search/title/%1/flv.mediarss").arg(phrase);
+    QString urlString = QString("http://www.tvkaista.fi/feedbeta/search/title/%1/flv.mediarss").arg(phrase);
     qDebug() << "GET" << urlString;
     QNetworkRequest request = QNetworkRequest(QUrl(urlString));
     addAuthHeaderToRequest(request);
