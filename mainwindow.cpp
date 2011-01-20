@@ -1448,7 +1448,12 @@ QString MainWindow::addDefaultOptionsToVlcCommand(const QString &command)
     }
 
     if (!s.contains("--audio-language")) {
-        s.append(" --audio-language=Finnish,Swedish,English");
+        s.append(" --audio-language=Finnish,Swedish,English,Norwegian,Danish,French,German,Italian,Spanish,Russian");
+    }
+    else {
+        s.append(' ');
+        s.replace("Finnish,Swedish,English ", "Finnish,Swedish,English,Norwegian,Danish,French,German,Italian,Spanish,Russian ");
+        s = s.trimmed();
     }
 
     s.append(" %D %F");
@@ -1492,7 +1497,7 @@ QString MainWindow::defaultStreamPlayerCommand()
     }
 
     path.append(" --fullscreen --sub-language=fi"
-                " --audio-language=Finnish,Swedish,English"
+                " --audio-language=Finnish,Swedish,English,Norwegian,Danish,French,German,Italian,Spanish,Russian"
                 " %D %F");
     return path;
 }
