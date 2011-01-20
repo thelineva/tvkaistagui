@@ -1441,6 +1441,7 @@ QString MainWindow::addDefaultOptionsToVlcCommand(const QString &command)
 
     QString s = command;
     s.remove(" %F");
+    s.remove(" %D");
 
     if (!s.contains("--sub-language")) {
         s.append(" --sub-language=fi");
