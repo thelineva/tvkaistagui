@@ -1485,6 +1485,18 @@ QString MainWindow::defaultStreamPlayerCommand()
 
     QString path = "vlc";
 
+#ifdef Q_OS_WIN
+    path = "C:/Program Files/VideoLAN/VLC/vlc.exe";
+#endif
+
+#ifdef Q_OS_LINUX
+    path = "/usr/bin/vlc";
+#endif
+
+#ifdef Q_OS_MAC
+    path = "/Applications/VLC.app/Contents/MacOS/VLC";
+#endif
+
     for (QStringList::iterator iter = paths.begin(); iter != paths.end(); iter++) {
         QString p = *iter;
 
