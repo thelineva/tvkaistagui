@@ -1457,6 +1457,10 @@ QString MainWindow::addDefaultOptionsToVlcCommand(const QString &command)
         s.append(" --audio-language=Finnish,Swedish,English");
     }
 
+    if (s.contains("--vout-filter")) {
+        s.replace("--vout-filter", "--video-filter");
+    }
+
     s.append(" %D %F");
     return s;
 }
