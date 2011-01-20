@@ -459,7 +459,7 @@ QString DownloadTableModel::toAscii(const QString &s)
 
 QString DownloadTableModel::removeInvalidCharacters(const QString &s)
 {
-    QString invalid = "|\\!?*<\":>+[]/";
+    QString invalid = "|\\!?*<\":>+[]/'";
     QString r;
     int len = s.length();
 
