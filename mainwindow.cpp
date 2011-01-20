@@ -1343,7 +1343,7 @@ void MainWindow::startMediaPlayer(const QString &command, const QString &filenam
 {
     m_settings.beginGroup("mediaPlayer");
     QString deinterlaceOptions = m_settings.value(
-            "deinterlaceOptions", "--vout-filter=deinterlace --deinterlace-mode=linear").toString();
+            "deinterlaceOptions", "--video-filter=deinterlace --deinterlace-mode=linear").toString();
     m_settings.endGroup();
 
     if (format != 3) {
