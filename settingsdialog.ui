@@ -17,7 +17,7 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>2</number>
      </property>
      <widget class="QWidget" name="tvkaistaTab">
       <attribute name="title">
@@ -536,14 +536,25 @@
  <tabstops>
   <tabstop>usernameLineEdit</tabstop>
   <tabstop>passwordLineEdit</tabstop>
+  <tabstop>recoverCommandLinkButton</tabstop>
+  <tabstop>orderCommandLinkButton</tabstop>
+  <tabstop>proxyHostLineEdit</tabstop>
+  <tabstop>proxyPortSpinBox</tabstop>
+  <tabstop>advancedPushButton</tabstop>
+  <tabstop>fontSizeComboBox</tabstop>
   <tabstop>doubleClickComboBox</tabstop>
   <tabstop>posterCheckBox</tabstop>
+  <tabstop>streamPlayerLineEdit</tabstop>
+  <tabstop>streamPlayerToolButton</tabstop>
+  <tabstop>filePlayerLineEdit</tabstop>
+  <tabstop>filePlayerToolButton</tabstop>
+  <tabstop>flashPlayerLineEdit</tabstop>
+  <tabstop>flashPlayerToolButton</tabstop>
   <tabstop>downloadDirLineEdit</tabstop>
   <tabstop>downloadDirToolButton</tabstop>
   <tabstop>filenameFormatLineEdit</tabstop>
-  <tabstop>streamPlayerLineEdit</tabstop>
-  <tabstop>filePlayerLineEdit</tabstop>
   <tabstop>buttonBox</tabstop>
+  <tabstop>tabWidget</tabstop>
  </tabstops>
  <resources/>
  <connections>
