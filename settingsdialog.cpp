@@ -35,6 +35,11 @@ SettingsDialog::~SettingsDialog()
     delete ui;
 }
 
+bool SettingsDialog::isUsernameChanged() const
+{
+    return m_usernameChanged;
+}
+
 void SettingsDialog::changeEvent(QEvent *e)
 {
     QDialog::changeEvent(e);
@@ -198,7 +203,9 @@ void SettingsDialog::loadSettings()
 void SettingsDialog::saveSettings()
 {
     m_settings->beginGroup("client");
-    m_settings->setValue("username", ui->usernameLineEdit->text());
+    QString username = ui->usernameLineEdit->text();
+    m_usernameChanged = m_settings->value("username") != username;
+    m_settings->setValue("username", username);
     m_settings->setValue("password", MainWindow::encodePassword(ui->passwordLineEdit->text()));
 
     m_settings->beginGroup("proxy");

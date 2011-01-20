@@ -14,6 +14,7 @@ class SettingsDialog : public QDialog {
 public:
     SettingsDialog(QSettings *settings, QWidget *parent = 0);
     ~SettingsDialog();
+    bool isUsernameChanged() const;
 
 protected:
     void changeEvent(QEvent *e);
@@ -33,6 +34,7 @@ private:
     void saveSettings();
     Ui::SettingsDialog *ui;
     QSettings *m_settings;
+    bool m_usernameChanged;
 };
 
 #endif // SETTINGSDIALOG_H

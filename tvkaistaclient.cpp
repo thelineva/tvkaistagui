@@ -58,6 +58,9 @@ QString TvkaistaClient::password() const
 
 void TvkaistaClient::setCookies(const QByteArray &cookieString)
 {
+    /* Tyhjennetään evästeet. */
+    m_networkAccessManager->setCookieJar(new QNetworkCookieJar());
+
     QList<QNetworkCookie> cookies = QNetworkCookie::parseCookies(cookieString);
     m_networkAccessManager->cookieJar()->setCookiesFromUrl(cookies, QUrl("http://www.tvkaista.fi/"));
 }

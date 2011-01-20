@@ -575,14 +575,20 @@ void MainWindow::openSettingsDialog()
 
 void MainWindow::settingsAccepted()
 {
-    m_settingsDialog->deleteLater();
-    m_settingsDialog = 0;
     loadClientSettings();
     updateFontSize();
 
-    if (m_channels.isEmpty()) {
-        fetchChannels(false);
+    if (m_channels.isEmpty() || m_settingsDialog->isUsernameChanged()) {
+        /* Tyhjennetään evästeet, jos käyttäjänimi on vaihtunut. */
+        m_settings.beginGroup("client");
+        m_settings.setValue("cookies", QString());
+        m_settings.endGroup();
+        m_client->setCookies(QByteArray());
+        fetchChannels(true);
     }
+
+    m_settingsDialog->deleteLater();
+    m_settingsDialog = 0;
 }
 
 void MainWindow::openAboutDialog()
@@ -837,7 +843,7 @@ void MainWindow::channelsFetched(const QList<Channel> &channels)
     stopLoadingAnimation();
     updateChannelList();
 
-    if (m_currentChannelId < 0 && !m_channels.isEmpty()) {
+    if (!m_channels.isEmpty()) {
         ui->channelListWidget->setCurrentIndex(ui->channelListWidget->model()->index(0, 0, QModelIndex()));
     }
 }
