@@ -1491,7 +1491,13 @@ QString MainWindow::defaultStreamPlayerCommand()
         path.append('\'');
     }
 
-    path.append(" --fullscreen --sub-language=fi"
+#ifndef Q_OS_MAC
+    /* Kokoruututilaa ei käytetä Mac OS X:ssä, koska VLC:n viasta johtuen videon toisto
+       ei käynnisty automaattisesti, jos kokoruututila on käytössä. */
+    path.append(" --fullscreen");
+#endif
+
+    path.append(" --sub-language=fi"
                 " --audio-language=Finnish,Swedish,English"
                 " %D %F");
     return path;
