@@ -1353,7 +1353,7 @@ void MainWindow::startMediaPlayer(const QString &command, const QString &filenam
 
     QString s = command;
     s.replace("%D", deinterlaceOptions);
-    s.replace("%F", filename);
+    s.replace("%F", "'" + filename + "'");
 
     QStringList args = splitCommandLine(s);
     QString program = QDir::fromNativeSeparators(args.takeFirst());
