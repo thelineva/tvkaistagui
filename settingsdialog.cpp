@@ -204,9 +204,11 @@ void SettingsDialog::saveSettings()
 {
     m_settings->beginGroup("client");
     QString username = ui->usernameLineEdit->text();
-    m_usernameChanged = m_settings->value("username") != username;
+    QString password = MainWindow::encodePassword(ui->passwordLineEdit->text());
+    m_usernameChanged = m_settings->value("username") != username ||
+                        m_settings->value("password") != password;
     m_settings->setValue("username", username);
-    m_settings->setValue("password", MainWindow::encodePassword(ui->passwordLineEdit->text()));
+    m_settings->setValue("password", password);
 
     m_settings->beginGroup("proxy");
     m_settings->setValue("host", ui->proxyHostLineEdit->text());
