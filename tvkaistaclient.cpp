@@ -7,6 +7,7 @@
 #include <QNetworkRequest>
 #include <QTimer>
 #include <QUrl>
+#include <QAuthenticator>
 #include "cache.h"
 #include "channelfeedparser.h"
 #include "programmefeedparser.h"
@@ -19,6 +20,7 @@ TvkaistaClient::TvkaistaClient(QObject *parent) :
 {
     m_requestedProgramme.id = -1;
     m_requestedStream.id = -1;
+    connect(m_networkAccessManager, SIGNAL(authenticationRequired(QNetworkReply*, QAuthenticator*)), SLOT(requestAuthenticationRequired(QNetworkReply*, QAuthenticator*)));
 }
 
 TvkaistaClient::~TvkaistaClient()
@@ -129,7 +131,6 @@ void TvkaistaClient::sendChannelRequest()
     qDebug() << "GET" << urlString;
     QUrl url(urlString);
     QNetworkRequest request(url);
-    addAuthHeaderToRequest(request);
     m_reply = m_networkAccessManager->get(request);
     connect(m_reply, SIGNAL(error(QNetworkReply::NetworkError)), SLOT(requestNetworkError(QNetworkReply::NetworkError)));
     connect(m_reply, SIGNAL(finished()), SLOT(channelRequestFinished()));
@@ -166,7 +167,6 @@ QNetworkReply* TvkaistaClient::sendDetailedFeedRequest(const Programme &programm
     qDebug() << "GET" << urlString;
     QUrl url(urlString);
     QNetworkRequest request(url);
-    addAuthHeaderToRequest(request);
     return m_networkAccessManager->get(request);
 }
 
@@ -181,7 +181,6 @@ QNetworkReply* TvkaistaClient::sendRequestWithAuthHeader(const QUrl &url)
 {
     qDebug() << "GET" << url.toString();
     QNetworkRequest request(url);
-    addAuthHeaderToRequest(request);
     return m_networkAccessManager->get(request);
 }
 
@@ -221,7 +220,6 @@ void TvkaistaClient::sendSearchRequest(const QString &phrase)
     QString urlString = QString("http://www.tvkaista.fi/feedbeta/search/title/%1/flv.mediarss").arg(phrase);
     qDebug() << "GET" << urlString;
     QNetworkRequest request = QNetworkRequest(QUrl(urlString));
-    addAuthHeaderToRequest(request);
     m_reply = m_networkAccessManager->get(request);
     connect(m_reply, SIGNAL(error(QNetworkReply::NetworkError)), SLOT(requestNetworkError(QNetworkReply::NetworkError)));
     connect(m_reply, SIGNAL(finished()), SLOT(searchRequestFinished()));
@@ -381,7 +379,7 @@ void TvkaistaClient::requestNetworkError(QNetworkReply::NetworkError error)
         return;
     }
 
-    if (m_networkError == QNetworkReply::AuthenticationRequiredError) {
+    if (error == QNetworkReply::AuthenticationRequiredError) {
         m_networkError = 1;
     }
     else if (m_requestedStream.id >= 0 && error == QNetworkReply::ContentNotFoundError) {
@@ -414,14 +412,15 @@ void TvkaistaClient::handleNetworkError()
     }
 }
 
-void TvkaistaClient::addAuthHeaderToRequest(QNetworkRequest &request)
+void TvkaistaClient::requestAuthenticationRequired(QNetworkReply *reply, QAuthenticator *authenticator)
 {
-    QString concatenated(m_username);
-    concatenated.append(':');
-    concatenated.append(m_password);
-    QByteArray data = concatenated.toLatin1().toBase64();
-    data.prepend("Basic ");
-    request.setRawHeader("Authorization", data);
+    Q_UNUSED(reply);
+    qDebug() << "AUTH" << m_username;
+
+    if (authenticator->user() != m_username || authenticator->password() != m_password) {
+        authenticator->setUser(m_username);
+        authenticator->setPassword(m_password);
+    }
 }
 
 void TvkaistaClient::abortRequest()
@@ -447,7 +446,7 @@ bool TvkaistaClient::checkResponse()
     if (m_reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt() == 302) {
         QDateTime now = QDateTime::currentDateTime();
 
-        if (m_lastLogin.isNull() || m_lastLogin < now.addSecs(-600)) {
+        if (m_lastLogin.isNull() || m_lastLogin < now.addSecs(-5)) {
             sendLoginRequest();
             return false;
         }

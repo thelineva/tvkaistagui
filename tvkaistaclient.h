@@ -65,11 +65,11 @@ private slots:
     void posterRequestFinished();
     void streamRequestFinished();
     void searchRequestFinished();
+    void requestAuthenticationRequired(QNetworkReply *reply, QAuthenticator* authenticator);
     void requestNetworkError(QNetworkReply::NetworkError error);
     void handleNetworkError();
 
 private:
-    void addAuthHeaderToRequest(QNetworkRequest &request);
     void abortRequest();
     bool checkResponse();
     QNetworkAccessManager *m_networkAccessManager;
