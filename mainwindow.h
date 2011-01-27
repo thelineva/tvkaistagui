@@ -73,17 +73,21 @@ private slots:
     void sortByTitleDesc();
     void showProgrammeList();
     void showSearchResults();
-    void toggleSearchResults();
+    void showSeasonPasses();
+    bool setCurrentView(int view);
     void toggleDownloadsDockWidget();
     void toggleShortcutsDockWidget();
     void selectChannel(int index);
     void setFocusToCalendar();
     void setFocusToChannelList();
+    void addToSeasonPass();
     void channelsFetched(const QList<Channel> &channels);
     void programmesFetched(int channelId, const QDate &date, const QList<Programme> &programmes);
     void posterFetched(const Programme &programme, const QImage &poster);
     void streamUrlFetched(const Programme &programme, int format, const QUrl &url);
     void searchResultsFetched(const QList<Programme> &programmes);
+    void seasonPassListFetched(const QList<Programme> &programmes);
+    void addedToSeasonPass();
     void downloadFinished();
     void networkError();
     void loginError();
@@ -93,6 +97,7 @@ private:
     void fetchChannels(bool refresh);
     void fetchProgrammes(int channelId, const QDate &date, bool refresh);
     void fetchSearchResults(const QString &phrase);
+    void fetchSeasonPasses();
     bool fetchPoster();
     void loadClientSettings();
     void updateFontSize();
@@ -121,6 +126,7 @@ private:
     DownloadTableModel *m_downloadTableModel;
     ProgrammeTableModel *m_programmeListTableModel;
     ProgrammeTableModel *m_searchResultsTableModel;
+    ProgrammeTableModel *m_seasonPassesTableModel;
     ProgrammeTableModel *m_currentTableModel;
     Cache *m_cache;
     SettingsDialog *m_settingsDialog;
@@ -138,7 +144,7 @@ private:
     QIcon m_searchIcon;
     QDate m_formattedDate;
     bool m_downloading;
-    bool m_searchResultsVisible;
+    int m_currentView;
 };
 
 #endif // MAINWINDOW_H

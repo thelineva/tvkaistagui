@@ -33,10 +33,11 @@ MainWindow::MainWindow(QWidget *parent) :
     m_downloadTableModel(new DownloadTableModel(&m_settings, this)),
     m_programmeListTableModel(new ProgrammeTableModel(false, this)),
     m_searchResultsTableModel(new ProgrammeTableModel(true, this)),
+    m_seasonPassesTableModel(new ProgrammeTableModel(true, this)),
     m_currentTableModel(m_programmeListTableModel),
     m_cache(new Cache), m_settingsDialog(0), m_screenshotWindow(0),
     m_currentChannelId(-1), m_searchIcon(":/images/list-22x22.png"),
-    m_downloading(false), m_searchResultsVisible(false)
+    m_downloading(false), m_currentView(0)
 {
     ui->setupUi(this);
     m_client->setCache(m_cache);
@@ -143,10 +144,14 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionProgrammeListButton, SIGNAL(triggered()), SLOT(showProgrammeList()));
     connect(ui->actionSearchResults, SIGNAL(triggered()), SLOT(showSearchResults()));
     connect(ui->actionSearchResultsButton, SIGNAL(triggered()), SLOT(showSearchResults()));
+    connect(ui->actionSeasonPasses, SIGNAL(triggered()), SLOT(showSeasonPasses()));
+    connect(ui->actionSeasonPassesButton, SIGNAL(triggered()), SLOT(showSeasonPasses()));
+    connect(ui->actionAddToSeasonPass, SIGNAL(triggered()), SLOT(addToSeasonPass()));
     connect(ui->actionPlayFile, SIGNAL(triggered()), SLOT(playDownloadedFile()));
     connect(ui->watchPushButton, SIGNAL(clicked()), SLOT(watchProgramme()));
     connect(ui->downloadPushButton, SIGNAL(clicked()), SLOT(downloadProgramme()));
     connect(ui->screenshotsPushButton, SIGNAL(clicked()), SLOT(openScreenshotWindow()));
+    connect(ui->addToSeasonPassPushButton, SIGNAL(clicked()), SLOT(addToSeasonPass()));
     connect(ui->playFilePushButton, SIGNAL(clicked()), SLOT(playDownloadedFile()));
     connect(ui->actionOpenDirectory, SIGNAL(triggered()), SLOT(openDirectory()));
     connect(ui->actionSettings, SIGNAL(triggered()), SLOT(openSettingsDialog()));
@@ -165,6 +170,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(m_client, SIGNAL(posterFetched(Programme,QImage)), SLOT(posterFetched(Programme,QImage)));
     connect(m_client, SIGNAL(streamUrlFetched(Programme,int,QUrl)), SLOT(streamUrlFetched(Programme,int,QUrl)));
     connect(m_client, SIGNAL(searchResultsFetched(QList<Programme>)), SLOT(searchResultsFetched(QList<Programme>)));
+    connect(m_client, SIGNAL(seasonPassListFetched(QList<Programme>)), SLOT(seasonPassListFetched(QList<Programme>)));
+    connect(m_client, SIGNAL(addedToSeasonPass()), SLOT(addedToSeasonPass()));
     connect(m_client, SIGNAL(networkError()), SLOT(networkError()));
     connect(m_client, SIGNAL(loginError()), SLOT(loginError()));
     connect(m_client, SIGNAL(streamNotFound()), SLOT(streamNotFound()));
@@ -453,7 +460,7 @@ void MainWindow::programmeMenuRequested(const QPoint &point)
     menu.addAction(ui->actionScreenshots);
     menu.addAction(ui->actionRefresh);
 
-    if (m_searchResultsVisible) {
+    if (m_currentView != 0) {
         int sortKey = m_searchResultsTableModel->sortKey();
         bool descending = m_searchResultsTableModel->isDescending();
         ui->actionSortByTimeAsc->setChecked(sortKey == 1 && !descending);
@@ -481,8 +488,11 @@ void MainWindow::refreshProgrammes()
 
     m_lastRefreshTime = now;
 
-    if (m_searchResultsVisible) {
+    if (m_currentView == 1) {
         fetchSearchResults(m_searchPhrase);
+    }
+    else if (m_currentView == 2) {
+        fetchSeasonPasses();
     }
     else {
         fetchProgrammes(m_currentChannelId, m_currentDate, true);
@@ -699,10 +709,7 @@ void MainWindow::search()
     m_searchComboBox->addItems(m_searchHistory);
 
     if (phrase == m_searchPhrase) {
-        if (!m_searchResultsVisible) {
-            toggleSearchResults();
-        }
-
+        setCurrentView(1);
         refreshProgrammes();
     }
     else {
@@ -726,29 +733,30 @@ void MainWindow::clearSearchHistory()
 void MainWindow::sortByTimeAsc()
 {
     m_searchResultsTableModel->setSortKey(1, false);
+    m_seasonPassesTableModel->setSortKey(1, false);
 }
 
 void MainWindow::sortByTimeDesc()
 {
     m_searchResultsTableModel->setSortKey(1, true);
+    m_seasonPassesTableModel->setSortKey(1, true);
 }
 
 void MainWindow::sortByTitleAsc()
 {
     m_searchResultsTableModel->setSortKey(2, false);
+    m_seasonPassesTableModel->setSortKey(2, false);
 }
 
 void MainWindow::sortByTitleDesc()
 {
     m_searchResultsTableModel->setSortKey(2, true);
+    m_seasonPassesTableModel->setSortKey(2, true);
 }
 
 void MainWindow::showProgrammeList()
 {
-    if (m_searchResultsVisible) {
-        toggleSearchResults();
-    }
-    else {
+    if (!setCurrentView(0)) {
         ui->actionProgrammeListButton->setChecked(true);
         ui->actionProgrammeList->setChecked(true);
     }
@@ -756,39 +764,57 @@ void MainWindow::showProgrammeList()
 
 void MainWindow::showSearchResults()
 {
-    if (m_searchResultsVisible) {
+    if (!setCurrentView(1)) {
         ui->actionSearchResultsButton->setChecked(true);
         ui->actionSearchResults->setChecked(true);
     }
+}
+
+void MainWindow::showSeasonPasses()
+{
+    if (setCurrentView(2)) {
+        if (m_seasonPassesTableModel->programmeCount() == 0) {
+            fetchSeasonPasses();
+        }
+    }
     else {
-        toggleSearchResults();
+        ui->actionSearchResultsButton->setChecked(true);
+        ui->actionSearchResults->setChecked(true);
     }
 }
 
-void MainWindow::toggleSearchResults()
+bool MainWindow::setCurrentView(int view)
 {
-    m_searchResultsVisible = !m_searchResultsVisible;
-    ui->calendarWidget->setVisible(!m_searchResultsVisible);
-    ui->channelListWidget->setVisible(!m_searchResultsVisible);
-    ui->currentDayPushButton->setVisible(!m_searchResultsVisible);
-    ui->actionSearchResults->setChecked(m_searchResultsVisible);
-    ui->actionSearchResultsButton->setChecked(m_searchResultsVisible);
-    ui->actionProgrammeList->setChecked(!m_searchResultsVisible);
-    ui->actionProgrammeListButton->setChecked(!m_searchResultsVisible);
+    if (m_currentView == view) {
+        return false;
+    }
+
+    m_currentView = view;
+    ui->calendarWidget->setVisible(view == 0);
+    ui->channelListWidget->setVisible(view == 0);
+    ui->currentDayPushButton->setVisible(view == 0);
+    ui->actionSearchResults->setChecked(view == 1);
+    ui->actionSearchResultsButton->setChecked(view == 1);
+    ui->actionProgrammeList->setChecked(view == 0);
+    ui->actionProgrammeListButton->setChecked(view == 0);
+    ui->actionSeasonPasses->setChecked(view == 2);
+    ui->actionSeasonPassesButton->setChecked(view == 2);
     ui->descriptionTextEdit->setPlainText(QString());
     m_currentProgramme.id = -1;
 
     QItemSelectionModel *selectionModel = ui->programmeTableView->selectionModel();
 
-    if (m_searchResultsVisible) {
+    if (view == 1) {
         m_currentTableModel = m_searchResultsTableModel;
-        ui->programmeTableView->setModel(m_searchResultsTableModel);
+    }
+    else if (view == 2) {
+        m_currentTableModel = m_seasonPassesTableModel;
     }
     else {
         m_currentTableModel = m_programmeListTableModel;
-        ui->programmeTableView->setModel(m_programmeListTableModel);
     }
 
+    ui->programmeTableView->setModel(m_currentTableModel);
     delete selectionModel;
     connect(ui->programmeTableView->selectionModel(),
             SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
@@ -797,6 +823,7 @@ void MainWindow::toggleSearchResults()
     updateColumnSizes();
     updateWindowTitle();
     scrollProgrammes();
+    return true;
 }
 
 void MainWindow::toggleDownloadsDockWidget()
@@ -821,20 +848,23 @@ void MainWindow::selectChannel(int index)
 
 void MainWindow::setFocusToCalendar()
 {
-    if (m_searchResultsVisible) {
-        toggleSearchResults();
-    }
-
+    setCurrentView(0);
     ui->calendarWidget->setFocus();
 }
 
 void MainWindow::setFocusToChannelList()
 {
-    if (m_searchResultsVisible) {
-        toggleSearchResults();
+    setCurrentView(0);
+    ui->channelListWidget->setFocus();
+}
+
+void MainWindow::addToSeasonPass()
+{
+    if (m_currentProgramme.id < 0) {
+        return;
     }
 
-    ui->channelListWidget->setFocus();
+    m_client->sendSeasonPassAddRequest(m_currentProgramme.id);
 }
 
 void MainWindow::channelsFetched(const QList<Channel> &channels)
@@ -852,10 +882,7 @@ void MainWindow::programmesFetched(int channelId, const QDate &date, const QList
 {
     m_currentChannelId = channelId;
     m_currentDate = date;
-
-    if (m_searchResultsVisible) {
-        toggleSearchResults();
-    }
+    setCurrentView(0);
 
     if (programmes.isEmpty()) {
         m_programmeListTableModel->setInfoText(trUtf8("Ohjelmatietoja ei ole saatavilla valitulle päivälle."));
@@ -918,6 +945,26 @@ void MainWindow::searchResultsFetched(const QList<Programme> &programmes)
         scrollProgrammes();
     }
 
+    stopLoadingAnimation();
+}
+
+void MainWindow::seasonPassListFetched(const QList<Programme> &programmes)
+{
+    if (programmes.isEmpty()) {
+        m_seasonPassesTableModel->setInfoText(trUtf8("Ei sarjoja"));
+    }
+    else {
+        m_seasonPassesTableModel->setProgrammes(programmes);
+        updateColumnSizes();
+        ui->programmeTableView->setFocus();
+        scrollProgrammes();
+    }
+
+    stopLoadingAnimation();
+}
+
+void MainWindow::addedToSeasonPass()
+{
     stopLoadingAnimation();
 }
 
@@ -995,10 +1042,7 @@ void MainWindow::fetchProgrammes(int channelId, const QDate &date, bool refresh)
         m_currentChannelId = channelId;
         m_currentDate = date;
 
-        if (m_searchResultsVisible) {
-            toggleSearchResults();
-        }
-        else {
+        if (!setCurrentView(0)) {
             updateColumnSizes();
         }
 
@@ -1024,13 +1068,17 @@ void MainWindow::fetchSearchResults(const QString &phrase)
     m_client->sendSearchRequest(phrase);
     m_searchPhrase = phrase;
     startLoadingAnimation();
+    setCurrentView(1);
+}
 
-    if (!m_searchResultsVisible) {
-        toggleSearchResults();
+void MainWindow::fetchSeasonPasses()
+{
+    if (!m_client->isValidUsernameAndPassword()) {
+        return;
     }
 
-    updateWindowTitle();
-    updateCalendar();
+    m_client->sendSeasonPassListRequest();
+    startLoadingAnimation();
 }
 
 bool MainWindow::fetchPoster()
@@ -1131,7 +1179,7 @@ void MainWindow::updateColumnSizes()
     QHeaderView *header = ui->programmeTableView->horizontalHeader();
     int timeWidth = ui->programmeTableView->fontMetrics().width(trUtf8("00.00AA"));
 
-    if (m_searchResultsVisible) {
+    if (m_currentView != 0) {
         int dateWidth = ui->programmeTableView->fontMetrics().width(trUtf8("AAA 00.00.0000AA"));
         int titleWidth = ui->programmeTableView->width() - dateWidth - timeWidth - 20;
         header->resizeSection(0, dateWidth);
@@ -1180,19 +1228,22 @@ void MainWindow::updateDescription()
 
 void MainWindow::updateWindowTitle()
 {
-    QListWidgetItem *item = ui->channelListWidget->currentItem();
+    QListWidgetItem *channelItem = ui->channelListWidget->currentItem();
     QString title;
 
-    if (!m_searchResultsVisible && item != 0) {
+    if (m_currentView == 0 && channelItem != 0) {
         QString dateString = m_currentDate.toString("ddd d. MMMM yyyy");
 
         /* Ubuntu Linuxissa kuukauden lopussa -ta, Windowsissa ei. Lisätään, jos puuttuu */
         if (!dateString.contains("kuuta")) dateString.replace("kuu", "kuuta");
 
-        title = QString("%2 %3").arg(item->text(), dateString);
+        title = QString("%2 %3").arg(channelItem->text(), dateString);
     }
-    else if (m_searchResultsVisible && !m_searchPhrase.isEmpty()) {
+    else if (m_currentView == 1 && !m_searchPhrase.isEmpty()) {
         title = trUtf8("Hakutulokset: %2").arg(m_searchPhrase);
+    }
+    else if (m_currentView == 2) {
+        title = trUtf8("Sarjat");
     }
 
     ui->titleLabel->setText(title);
@@ -1245,16 +1296,16 @@ void MainWindow::setFormat(int format)
 
 void MainWindow::scrollProgrammes()
 {
-    if (m_searchResultsVisible) {
-        if (m_searchResultsTableModel->programmeCount() == 0) {
+    if (m_currentView != 0) {
+        if (m_currentTableModel->programmeCount() == 0) {
             return;
         }
 
-        QModelIndex modelIndex = m_searchResultsTableModel->index(0, 0, QModelIndex());
+        QModelIndex modelIndex = m_currentTableModel->index(0, 0, QModelIndex());
 
-        if (m_searchResultsTableModel->sortKey() == 1 && !m_searchResultsTableModel->isDescending()) {
+        if (m_currentTableModel->sortKey() == 1 && !m_currentTableModel->isDescending()) {
             ui->programmeTableView->scrollToBottom();
-            modelIndex = m_searchResultsTableModel->index(
+            modelIndex = m_currentTableModel->index(
                     m_currentTableModel->rowCount(QModelIndex()) - 1, 0, QModelIndex());
         }
         else {
