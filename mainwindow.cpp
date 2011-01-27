@@ -211,6 +211,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(action, SIGNAL(triggered()), SLOT(clearSearchHistory()));
     m_searchComboBox->addAction(action);
 
+    ui->actionRemoveDownload->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+
     QSignalMapper *signalMapper = new QSignalMapper(this);
     connect(signalMapper, SIGNAL(mapped(int)), SLOT(selectChannel(int)));
 

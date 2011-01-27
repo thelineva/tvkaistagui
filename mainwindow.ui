@@ -839,6 +839,9 @@
    <property name="text">
     <string>&amp;Poista</string>
    </property>
+   <property name="shortcut">
+    <string>Del</string>
+   </property>
   </action>
   <action name="actionSearchResultsButton">
    <property name="checkable">
