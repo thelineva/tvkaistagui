@@ -66,6 +66,9 @@ MainWindow::MainWindow(QWidget *parent) :
     m_loadMovie->setFileName(":/images/load-32x32.gif");
     m_loadLabel = new QLabel(this);
     m_loadLabel->setMinimumSize(47, 32);
+    m_posterTimer = new QTimer(this);
+    m_posterTimer->setSingleShot(true);
+    connect(m_posterTimer, SIGNAL(timeout()), SLOT(posterTimeout()));
     QAction *searchAction = new QAction(this);
     searchAction->setText(trUtf8("Hae"));
     m_searchToolButton = new QToolButton(this);
@@ -413,9 +416,15 @@ void MainWindow::programmeSelectionChanged()
     m_settings.beginGroup("mainWindow");
     bool posterVisible = m_settings.value("posterVisible", true).toBool();
     m_settings.endGroup();
+    m_posterImage = m_noPosterImage;
 
-    if (m_currentProgramme.id < 0 || (m_currentProgramme.flags & 0x08) > 0 || !posterVisible || !fetchPoster()) {
-        m_posterImage = m_noPosterImage;
+    if (m_currentProgramme.id >= 0 && (m_currentProgramme.flags & 0x08) == 0 && posterVisible) {
+        if (m_client->isRequestUnfinished()) {
+            m_posterTimer->start(500);
+        }
+        else {
+            fetchPoster();
+        }
     }
 
     updateDescription();
@@ -968,6 +977,13 @@ void MainWindow::addedToSeasonPass()
     stopLoadingAnimation();
 }
 
+void MainWindow::posterTimeout()
+{
+    if (fetchPoster()) {
+        updateDescription();
+    }
+}
+
 void MainWindow::downloadFinished()
 {
     ui->downloadsTableView->resizeRowsToContents();
@@ -1087,6 +1103,7 @@ bool MainWindow::fetchPoster()
 
     if (m_posterImage.isNull()) {
         m_client->sendPosterRequest(m_currentProgramme);
+        m_posterImage = m_noPosterImage;
         return false;
     }
     else {

@@ -114,6 +114,11 @@ bool TvkaistaClient::isValidUsernameAndPassword() const
     return !m_username.isEmpty() && !m_password.isEmpty();
 }
 
+bool TvkaistaClient::isRequestUnfinished() const
+{
+    return m_reply != 0;
+}
+
 void TvkaistaClient::sendLoginRequest()
 {
     abortRequest();

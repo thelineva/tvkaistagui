@@ -88,6 +88,7 @@ private slots:
     void searchResultsFetched(const QList<Programme> &programmes);
     void seasonPassListFetched(const QList<Programme> &programmes);
     void addedToSeasonPass();
+    void posterTimeout();
     void downloadFinished();
     void networkError();
     void loginError();
@@ -120,6 +121,7 @@ private:
     QComboBox *m_searchComboBox;
     QLabel *m_loadLabel;
     QMovie *m_loadMovie;
+    QTimer *m_posterTimer;
     QToolButton *m_searchToolButton;
     QSettings m_settings;
     TvkaistaClient *m_client;

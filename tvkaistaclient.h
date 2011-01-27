@@ -34,6 +34,7 @@ public:
     int format() const;
     QString lastError() const;
     bool isValidUsernameAndPassword() const;
+    bool isRequestUnfinished() const;
     void sendLoginRequest();
     void sendChannelRequest();
     void sendProgrammeRequest(int channelId, const QDate &date);
