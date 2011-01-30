@@ -55,3 +55,4 @@ TRANSLATIONS = translations/qt_fi.ts
 VERSION = 1.2.0
 DEFINES += APP_VERSION=\\\"$$VERSION\\\"
 unix:DEFINES += TVKAISTAGUI_TRANSLATIONS_DIR=\\\"/usr/share/tvkaistagui/translations\\\"
+macx:CONFIG += x86 x86_64 ppc 
