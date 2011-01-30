@@ -1304,6 +1304,11 @@ void MainWindow::updateDescription()
     html.append(trUtf8("%1 kanavalta %2").arg(
             m_currentProgramme.startDateTime.toString(trUtf8("ddd d.M.yyyy 'klo' h.mm")),
             m_channelMap.value(m_currentProgramme.channelId)));
+
+    if (m_currentProgramme.duration > 0) {
+        html.append(trUtf8(", %1 min").arg(QString::number(qRound(m_currentProgramme.duration / 60.0))));
+    }
+
     html.append("</p>");
     html.append("</p><p>");
     html.append(Qt::escape(m_currentProgramme.description));
