@@ -21,7 +21,7 @@ public:
 private:
     void parseChannelElement();
     void parseItemElement();
-    void parseMediaGroupElement();
+    void parseMediaGroupElement(Programme &programme);
     int parseProgrammeId(const QString &s);
     int parseChannelId(const QString &s);
     QDateTime parseDateTime(const QString &s);

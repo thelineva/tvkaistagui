@@ -82,7 +82,7 @@ void ProgrammeFeedParser::parseItemElement()
             programme.startDateTime = parseDateTime(m_reader.readElementText());
         }
         else if (m_reader.qualifiedName() == "media:group") {
-            parseMediaGroupElement();
+            parseMediaGroupElement(programme);
         }
         else {
             m_reader.skipCurrentElement();
@@ -92,10 +92,18 @@ void ProgrammeFeedParser::parseItemElement()
     m_programmes.append(programme);
 }
 
-void ProgrammeFeedParser::parseMediaGroupElement()
+void ProgrammeFeedParser::parseMediaGroupElement(Programme &programme)
 {
     while (m_reader.readNextStartElement()) {
-        if (m_reader.qualifiedName() == "media:thumbnail") {
+        if (m_reader.qualifiedName() == "media:content") {
+            bool ok;
+            int duration = m_reader.attributes().value("duration").toString().toInt(&ok);
+
+            if (ok) {
+                programme.duration = duration;
+            }
+        }
+        else if (m_reader.qualifiedName() == "media:thumbnail") {
             Thumbnail thumbnail(QUrl(m_reader.attributes().value("url").toString()),
                                 parseTime(m_reader.attributes().value("time").toString()));
 
