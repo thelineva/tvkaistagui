@@ -71,7 +71,7 @@ void ProgrammeFeedParser::parseItemElement()
         else if (m_reader.name() == "description") {
             programme.description = m_reader.readElementText();
         }
-        else if (m_reader.name() == "link") {
+        else if (m_reader.qualifiedName() == "link") {
             programme.id = parseProgrammeId(m_reader.readElementText());
         }
         else if (m_reader.name() == "source") {
@@ -111,7 +111,13 @@ void ProgrammeFeedParser::parseMediaGroupElement()
 int ProgrammeFeedParser::parseProgrammeId(const QString &s)
 {
     /* "http://tvkaista.fi/search/?findid=8155949" -> 8155949 */
+    /* "http://services.tvkaista.fi/feedbeta/seasonpasses/852238" -> 852238 */
     int pos = s.lastIndexOf('=');
+
+    if (pos < 0) {
+        pos = s.lastIndexOf('/');
+    }
+
     bool ok;
     int programmeId = s.mid(pos + 1).toInt(&ok);
 
