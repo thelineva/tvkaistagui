@@ -203,8 +203,8 @@ void SettingsDialog::loadSettings()
 void SettingsDialog::saveSettings()
 {
     m_settings->beginGroup("client");
-    QString username = ui->usernameLineEdit->text();
-    QString password = MainWindow::encodePassword(ui->passwordLineEdit->text());
+    QString username = ui->usernameLineEdit->text().trimmed();
+    QString password = MainWindow::encodePassword(ui->passwordLineEdit->text().trimmed());
     m_usernameChanged = m_settings->value("username") != username ||
                         m_settings->value("password") != password;
     m_settings->setValue("username", username);
