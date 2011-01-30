@@ -513,6 +513,11 @@ void TvkaistaClient::requestNetworkError(QNetworkReply::NetworkError error)
         return;
     }
 
+    /* Ei virheilmoituksia kuvakaappausten hakemisesta. */
+    if (m_requestType == 5) {
+        return;
+    }
+
     if (error == QNetworkReply::AuthenticationRequiredError) {
         m_networkError = 1;
     }
