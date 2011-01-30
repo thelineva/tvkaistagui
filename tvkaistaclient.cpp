@@ -434,6 +434,7 @@ void TvkaistaClient::seasonPassListRequestFinished()
 
     m_reply->deleteLater();
     m_reply = 0;
+    m_cache->saveSeasonPasses(QDateTime::currentDateTime(), parser.programmes());
     emit seasonPassListFetched(parser.programmes());
 }
 
