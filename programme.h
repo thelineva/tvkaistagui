@@ -14,6 +14,7 @@ public:
     QDateTime startDateTime;
     int channelId;
     int flags;
+    int duration;
 };
 
 #endif // PROGRAMME_H
