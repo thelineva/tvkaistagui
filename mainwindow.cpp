@@ -267,13 +267,8 @@ MainWindow::MainWindow(QWidget *parent) :
     m_settings.endArray();
     m_searchComboBox->addItems(m_searchHistory);
     m_searchComboBox->setCurrentIndex(-1);
-
-    QString sortKey = m_settings.value("sortProgrammes").toString();
-    if (sortKey == "timeAsc") sortByTimeAsc();
-    else if (sortKey == "titleAsc") sortByTitleAsc();
-    else if (sortKey == "titleDesc") sortByTitleDesc();
-    else sortByTimeDesc();
-
+    setSortKeyToModel(m_settings.value("sortProgrammes").toString(), m_searchResultsTableModel);
+    setSortKeyToModel(m_settings.value("sortSeasonPasses").toString(), m_seasonPassesTableModel);
     m_settings.endGroup();
 
     m_serverSignalMapper = new QSignalMapper(this);
@@ -367,16 +362,8 @@ void MainWindow::closeEvent(QCloseEvent *e)
 
     m_settings.endArray();
 
-    int sortKey = m_searchResultsTableModel->sortKey();
-    bool descending = m_searchResultsTableModel->isDescending();
-    QString sortKeyString;
-
-    if (sortKey == 1 && !descending) sortKeyString = "timeAsc";
-    else if (sortKey == 1 && descending) sortKeyString = "timeDesc";
-    else if (sortKey == 2 && !descending) sortKeyString = "titleAsc";
-    else if (sortKey == 2 && descending) sortKeyString = "titleDesc";
-
-    m_settings.setValue("sortProgrammes", sortKeyString);
+    m_settings.setValue("sortProgrammes", sortKeyFromModel(m_searchResultsTableModel));
+    m_settings.setValue("sortSeasonPasses", sortKeyFromModel(m_seasonPassesTableModel));
     m_settings.endGroup();
 
     m_settings.beginGroup("client");
@@ -485,8 +472,8 @@ void MainWindow::programmeMenuRequested(const QPoint &point)
     menu.addAction(ui->actionRefresh);
 
     if (m_currentView != 0) {
-        int sortKey = m_searchResultsTableModel->sortKey();
-        bool descending = m_searchResultsTableModel->isDescending();
+        int sortKey = m_currentTableModel->sortKey();
+        bool descending = m_currentTableModel->isDescending();
         ui->actionSortByTimeAsc->setChecked(sortKey == 1 && !descending);
         ui->actionSortByTimeDesc->setChecked(sortKey == 1 && descending);
         ui->actionSortByTitleAsc->setChecked(sortKey == 2 && !descending);
@@ -756,26 +743,22 @@ void MainWindow::clearSearchHistory()
 
 void MainWindow::sortByTimeAsc()
 {
-    m_searchResultsTableModel->setSortKey(1, false);
-    m_seasonPassesTableModel->setSortKey(1, false);
+    m_currentTableModel->setSortKey(1, false);
 }
 
 void MainWindow::sortByTimeDesc()
 {
-    m_searchResultsTableModel->setSortKey(1, true);
-    m_seasonPassesTableModel->setSortKey(1, true);
+    m_currentTableModel->setSortKey(1, true);
 }
 
 void MainWindow::sortByTitleAsc()
 {
-    m_searchResultsTableModel->setSortKey(2, false);
-    m_seasonPassesTableModel->setSortKey(2, false);
+    m_currentTableModel->setSortKey(2, false);
 }
 
 void MainWindow::sortByTitleDesc()
 {
-    m_searchResultsTableModel->setSortKey(2, true);
-    m_seasonPassesTableModel->setSortKey(2, true);
+    m_currentTableModel->setSortKey(2, true);
 }
 
 void MainWindow::showProgrammeList()
@@ -1486,6 +1469,25 @@ void MainWindow::addBorderToPoster()
     painter.fillRect(m_noPosterImage.rect(), QBrush(ui->descriptionTextEdit->palette().color(QPalette::Base)));
     painter.drawImage(QPoint(4, 4), m_posterImage);
     m_posterImage = image;
+}
+
+void MainWindow::setSortKeyToModel(const QString &sortKey, ProgrammeTableModel *model)
+{
+    if (sortKey == "timeAsc") model->setSortKey(1, false);
+    else if (sortKey == "titleAsc") model->setSortKey(2, false);
+    else if (sortKey == "titleDesc") model->setSortKey(2, true);
+    else model->setSortKey(1, true);
+}
+
+QString MainWindow::sortKeyFromModel(ProgrammeTableModel *model)
+{
+    int sortKey = model->sortKey();
+    bool descending = model->isDescending();
+    if (sortKey == 1 && !descending) return "timeAsc";
+    if (sortKey == 1 &&  descending) return "timeDesc";
+    if (sortKey == 2 && !descending) return "titleAsc";
+    if (sortKey == 2 &&  descending) return "titleDesc";
+    return "";
 }
 
 void MainWindow::startFlashStream(const QUrl &url)

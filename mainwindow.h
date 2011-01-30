@@ -115,6 +115,8 @@ private:
     void startLoadingAnimation();
     void stopLoadingAnimation();
     void addBorderToPoster();
+    void setSortKeyToModel(const QString &sortKey, ProgrammeTableModel *model);
+    QString sortKeyFromModel(ProgrammeTableModel *model);
     void startFlashStream(const QUrl &url);
     void startMediaPlayer(const QString &command, const QString &filename, int format);
     QStringList splitCommandLine(const QString &command);
