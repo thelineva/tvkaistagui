@@ -81,6 +81,7 @@ private slots:
     void setFocusToCalendar();
     void setFocusToChannelList();
     void addToSeasonPass();
+    void setCurrentServer(int index);
     void channelsFetched(const QList<Channel> &channels);
     void programmesFetched(int channelId, const QDate &date, const QList<Programme> &programmes);
     void posterFetched(const Programme &programme, const QImage &poster);
@@ -102,6 +103,7 @@ private:
     void fetchSeasonPasses(bool refresh);
     bool fetchPoster();
     void loadClientSettings();
+    void addServer(const QString &name, const QString &serverId);
     void updateFontSize();
     void updateColumnSizes();
     void updateChannelList();
@@ -135,6 +137,8 @@ private:
     SettingsDialog *m_settingsDialog;
     ScreenshotWindow *m_screenshotWindow;
     QList<Channel> m_channels;
+    QList<QAction*> m_serverActions;
+    QSignalMapper *m_serverSignalMapper;
     QMap<int, QString> m_channelMap;
     QStringList m_searchHistory;
     QString m_searchPhrase;

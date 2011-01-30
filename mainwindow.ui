@@ -252,16 +252,22 @@
     <addaction name="actionDownloads"/>
     <addaction name="actionShortcuts"/>
    </widget>
-   <widget class="QMenu" name="menuOhje">
+   <widget class="QMenu" name="menuHelp">
     <property name="title">
      <string>&amp;Ohje</string>
     </property>
     <addaction name="actionContents"/>
     <addaction name="actionAbout"/>
    </widget>
+   <widget class="QMenu" name="menuServer">
+    <property name="title">
+     <string>&amp;Palvelin</string>
+    </property>
+   </widget>
    <addaction name="menuProgramme"/>
    <addaction name="menuView"/>
-   <addaction name="menuOhje"/>
+   <addaction name="menuServer"/>
+   <addaction name="menuHelp"/>
   </widget>
   <widget class="QToolBar" name="toolBar">
    <property name="windowTitle">

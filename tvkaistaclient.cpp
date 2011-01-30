@@ -74,6 +74,10 @@ QByteArray TvkaistaClient::cookies() const
     int count = cookies.size();
 
     for (int i = 0; i < count; i++) {
+        if (cookies.at(i).name() == "preferred_servers") {
+            continue;
+        }
+
         if (!cookieString.isEmpty()) {
             cookieString.append('\n');
         }
@@ -102,6 +106,16 @@ void TvkaistaClient::setFormat(int format)
 int TvkaistaClient::format() const
 {
     return m_format;
+}
+
+void TvkaistaClient::setServer(const QString &server)
+{
+    m_server = server;
+}
+
+QString TvkaistaClient::server() const
+{
+    return m_server;
 }
 
 QString TvkaistaClient::lastError() const
@@ -215,7 +229,12 @@ void TvkaistaClient::sendStreamRequest(const Programme &programme)
         urlString.append("0/8000000/");
     }
 
-    qDebug() << "GET" << urlString;;
+    QNetworkCookie serverCookie("preferred_servers", m_server.toAscii());
+    serverCookie.setDomain("www.tvkaista.fi");
+    m_networkAccessManager->cookieJar()->setCookiesFromUrl(QList<QNetworkCookie>() << serverCookie, QUrl("http://www.tvkaista.fi/"));
+
+    qDebug() << "Server" << m_server;
+    qDebug() << "GET" << urlString;
     m_reply = m_networkAccessManager->get(QNetworkRequest(QUrl(urlString)));
     m_requestType = 6;
     connect(m_reply, SIGNAL(error(QNetworkReply::NetworkError)), SLOT(requestNetworkError(QNetworkReply::NetworkError)));

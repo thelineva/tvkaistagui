@@ -240,6 +240,7 @@ MainWindow::MainWindow(QWidget *parent) :
     int format = qBound(0, m_settings.value("format", 1).toInt(), videoFormats().size() - 1);
     m_client->setCookies(m_settings.value("cookies").toByteArray());
     m_client->setFormat(format);
+    m_client->setServer(m_settings.value("server").toString());
     m_settings.endGroup();
 
     m_cache->setDirectory(QDir(cacheDirPath));
@@ -274,6 +275,14 @@ MainWindow::MainWindow(QWidget *parent) :
     else sortByTimeDesc();
 
     m_settings.endGroup();
+
+    m_serverSignalMapper = new QSignalMapper(this);
+    connect(m_serverSignalMapper, SIGNAL(mapped(int)), SLOT(setCurrentServer(int)));
+    addServer(trUtf8("Suomi"), "");
+    addServer(trUtf8("Espanja"), "7134762+5332710");
+    addServer(trUtf8("Ranska"), "721600");
+    addServer(trUtf8("Saksa"), "8031916+6913675");
+    addServer(trUtf8("Yhdysvallat"), "7064662+909967");
 
     QString version = m_settings.value("version").toString();
 
@@ -373,6 +382,7 @@ void MainWindow::closeEvent(QCloseEvent *e)
     m_settings.beginGroup("client");
     m_settings.setValue("cookies", m_client->cookies());
     m_settings.setValue("format", m_formatComboBox->currentIndex());
+    m_settings.setValue("server", m_client->server());
     m_settings.endGroup();
 
     m_downloadTableModel->abortAllDownloads();
@@ -898,6 +908,18 @@ void MainWindow::addToSeasonPass()
     ui->actionAddToSeasonPass->setEnabled(false);
 }
 
+void MainWindow::setCurrentServer(int index)
+{
+    int count = m_serverActions.size();
+
+    for (int i = 0; i < count; i++) {
+        QAction *action = m_serverActions.at(i);
+        action->setChecked(index == i);
+    }
+
+    m_client->setServer(m_serverActions.at(index)->data().toString());
+}
+
 void MainWindow::channelsFetched(const QList<Channel> &channels)
 {
     m_channels = channels;
@@ -1210,6 +1232,20 @@ void MainWindow::loadClientSettings()
     m_client->setProxy(proxy);
     m_settings.endGroup();
     m_settings.endGroup();
+}
+
+void MainWindow::addServer(const QString &name, const QString &serverId)
+{
+    int index = m_serverActions.size();
+    QString text = QString("&%1 %2").arg(index + 1).arg(name);
+    QAction *action = new QAction(text, this);
+    action->setCheckable(true);
+    action->setChecked(m_client->server() == serverId);
+    action->setData(serverId);
+    m_serverActions.append(action);
+    m_serverSignalMapper->setMapping(action, index);
+    connect(action, SIGNAL(triggered()), m_serverSignalMapper, SLOT(map()));
+    ui->menuServer->addAction(action);
 }
 
 void MainWindow::updateFontSize()

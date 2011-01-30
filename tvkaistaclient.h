@@ -32,6 +32,8 @@ public:
     QNetworkProxy proxy() const;
     void setFormat(int format);
     int format() const;
+    void setServer(const QString &server);
+    QString server() const;
     QString lastError() const;
     bool isValidUsernameAndPassword() const;
     bool isRequestUnfinished() const;
@@ -93,6 +95,7 @@ private:
     QDateTime m_lastLogin;
     QString m_username;
     QString m_password;
+    QString m_server;
     QString m_error;
     int m_networkError;
     int m_format;
