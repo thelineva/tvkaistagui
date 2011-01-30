@@ -43,6 +43,7 @@ public:
     void sendSearchRequest(const QString &phrase);
     void sendSeasonPassListRequest();
     void sendSeasonPassAddRequest(int programmeId);
+    void sendSeasonPassRemoveRequest(const Programme &programme);
     QNetworkReply* sendDetailedFeedRequest(const Programme &programme);
     QNetworkReply* sendRequest(const QUrl &url);
     QNetworkReply* sendRequestWithAuthHeader(const QUrl &url);
@@ -56,7 +57,8 @@ signals:
     void streamUrlFetched(const Programme &programme, int format, const QUrl &url);
     void searchResultsFetched(const QList<Programme> &programmes);
     void seasonPassListFetched(const QList<Programme> &programmes);
-    void addedToSeasonPass();
+    void addedToSeasonPass(bool ok);
+    void removedFromSeasonPass(bool ok);
     void streamNotFound();
     void loginError();
     void networkError();
@@ -72,6 +74,8 @@ private slots:
     void searchRequestFinished();
     void seasonPassListRequestFinished();
     void seasonPassAddRequestFinished();
+    void seasonPassIndexRequestFinished();
+    void seasonPassRemoveRequestFinished();
     void requestAuthenticationRequired(QNetworkReply *reply, QAuthenticator* authenticator);
     void requestNetworkError(QNetworkReply::NetworkError error);
     void handleNetworkError();
@@ -79,7 +83,6 @@ private slots:
 private:
     void abortRequest();
     bool checkResponse();
-    QString sessionId() const;
     QNetworkAccessManager *m_networkAccessManager;
     QNetworkReply *m_reply;
     Cache *m_cache;
@@ -93,6 +96,7 @@ private:
     QString m_error;
     int m_networkError;
     int m_format;
+    int m_requestType;
 };
 
 #endif // TVKAISTACLIENT_H

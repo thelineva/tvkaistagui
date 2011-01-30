@@ -174,7 +174,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(m_client, SIGNAL(streamUrlFetched(Programme,int,QUrl)), SLOT(streamUrlFetched(Programme,int,QUrl)));
     connect(m_client, SIGNAL(searchResultsFetched(QList<Programme>)), SLOT(searchResultsFetched(QList<Programme>)));
     connect(m_client, SIGNAL(seasonPassListFetched(QList<Programme>)), SLOT(seasonPassListFetched(QList<Programme>)));
-    connect(m_client, SIGNAL(addedToSeasonPass()), SLOT(addedToSeasonPass()));
+    connect(m_client, SIGNAL(addedToSeasonPass(bool)), SLOT(addedToSeasonPass(bool)));
+    connect(m_client, SIGNAL(removedFromSeasonPass(bool)), SLOT(removedFromSeasonPass(bool)));
     connect(m_client, SIGNAL(networkError()), SLOT(networkError()));
     connect(m_client, SIGNAL(loginError()), SLOT(loginError()));
     connect(m_client, SIGNAL(streamNotFound()), SLOT(streamNotFound()));
@@ -429,6 +430,8 @@ void MainWindow::programmeSelectionChanged()
         }
     }
 
+    ui->addToSeasonPassPushButton->setEnabled(true);
+    ui->actionAddToSeasonPass->setEnabled(true);
     updateDescription();
 }
 
@@ -813,6 +816,15 @@ bool MainWindow::setCurrentView(int view)
     ui->descriptionTextEdit->setPlainText(QString());
     m_currentProgramme.id = -1;
 
+    if (m_currentView == 2) {
+        ui->addToSeasonPassPushButton->setText(trUtf8("&Poista sarjoista"));
+        ui->actionAddToSeasonPass->setText(trUtf8("&Poista sarjoista"));
+    }
+    else {
+        ui->addToSeasonPassPushButton->setText(trUtf8("&Sarjoihin"));
+        ui->actionAddToSeasonPass->setText(trUtf8("&Lisää sarjoihin"));
+    }
+
     QItemSelectionModel *selectionModel = ui->programmeTableView->selectionModel();
 
     if (view == 1) {
@@ -875,7 +887,15 @@ void MainWindow::addToSeasonPass()
         return;
     }
 
-    m_client->sendSeasonPassAddRequest(m_currentProgramme.id);
+    if (m_currentView == 2) {
+        m_client->sendSeasonPassRemoveRequest(m_currentProgramme);
+    }
+    else {
+        m_client->sendSeasonPassAddRequest(m_currentProgramme.id);
+    }
+
+    ui->addToSeasonPassPushButton->setEnabled(false);
+    ui->actionAddToSeasonPass->setEnabled(false);
 }
 
 void MainWindow::channelsFetched(const QList<Channel> &channels)
@@ -966,17 +986,59 @@ void MainWindow::seasonPassListFetched(const QList<Programme> &programmes)
     }
     else {
         m_seasonPassesTableModel->setProgrammes(programmes);
-        updateColumnSizes();
-        ui->programmeTableView->setFocus();
-        scrollProgrammes();
+
+        if (m_currentView == 2) {
+            updateColumnSizes();
+            ui->programmeTableView->setFocus();
+            scrollProgrammes();
+        }
     }
 
     stopLoadingAnimation();
 }
 
-void MainWindow::addedToSeasonPass()
+void MainWindow::addedToSeasonPass(bool ok)
 {
-    stopLoadingAnimation();
+    fetchSeasonPasses();
+
+    if (ok) {
+        QMessageBox msgBox(this);
+        msgBox.setWindowTitle(windowTitle());
+        msgBox.setIcon(QMessageBox::Information);
+        msgBox.setText(trUtf8("Ohjelma on lisätty sarjoihin."));
+        msgBox.setStandardButtons(QMessageBox::Ok);
+        msgBox.exec();
+    }
+    else {
+        QMessageBox msgBox(this);
+        msgBox.setWindowTitle(windowTitle());
+        msgBox.setIcon(QMessageBox::Information);
+        msgBox.setText(trUtf8("Ohjelma on jo aiemmin lisätty sarjoihin."));
+        msgBox.setStandardButtons(QMessageBox::Ok);
+        msgBox.exec();
+    }
+}
+
+void MainWindow::removedFromSeasonPass(bool ok)
+{
+    fetchSeasonPasses();
+
+    if (ok) {
+        QMessageBox msgBox(this);
+        msgBox.setWindowTitle(windowTitle());
+        msgBox.setIcon(QMessageBox::Information);
+        msgBox.setText(trUtf8("Ohjelma on poistettu sarjoista."));
+        msgBox.setStandardButtons(QMessageBox::Ok);
+        msgBox.exec();
+    }
+    else {
+        QMessageBox msgBox(this);
+        msgBox.setWindowTitle(windowTitle());
+        msgBox.setIcon(QMessageBox::Information);
+        msgBox.setText(trUtf8("Ohjelman poistaminen epäonnistui."));
+        msgBox.setStandardButtons(QMessageBox::Ok);
+        msgBox.exec();
+    }
 }
 
 void MainWindow::posterTimeout()
@@ -1001,6 +1063,9 @@ void MainWindow::networkError()
     msgBox.setText(trUtf8("Verkkovirhe: %1").arg(m_client->lastError()));
     msgBox.setStandardButtons(QMessageBox::Ok);
     msgBox.exec();
+
+    ui->addToSeasonPassPushButton->setEnabled(true);
+    ui->actionAddToSeasonPass->setEnabled(true);
 }
 
 void MainWindow::loginError()

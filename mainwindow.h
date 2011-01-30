@@ -87,7 +87,8 @@ private slots:
     void streamUrlFetched(const Programme &programme, int format, const QUrl &url);
     void searchResultsFetched(const QList<Programme> &programmes);
     void seasonPassListFetched(const QList<Programme> &programmes);
-    void addedToSeasonPass();
+    void addedToSeasonPass(bool ok);
+    void removedFromSeasonPass(bool ok);
     void posterTimeout();
     void downloadFinished();
     void networkError();

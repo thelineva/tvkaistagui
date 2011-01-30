@@ -16,7 +16,7 @@
 
 TvkaistaClient::TvkaistaClient(QObject *parent) :
     QObject(parent), m_networkAccessManager(new QNetworkAccessManager(this)), m_reply(0),
-    m_cache(0), m_programmeTableParser(new ProgrammeTableParser)
+    m_cache(0), m_programmeTableParser(new ProgrammeTableParser), m_requestType(-1)
 {
     m_requestedProgramme.id = -1;
     m_requestedStream.id = -1;
@@ -125,6 +125,7 @@ void TvkaistaClient::sendLoginRequest()
     QString urlString = "http://www.tvkaista.fi/";
     qDebug() << "GET" << urlString;
     m_reply = m_networkAccessManager->get(QNetworkRequest(QUrl(urlString)));
+    m_requestType = 1;
     connect(m_reply, SIGNAL(error(QNetworkReply::NetworkError)), SLOT(requestNetworkError(QNetworkReply::NetworkError)));
     connect(m_reply, SIGNAL(finished()), SLOT(frontPageRequestFinished()));
 }
@@ -137,6 +138,7 @@ void TvkaistaClient::sendChannelRequest()
     QUrl url(urlString);
     QNetworkRequest request(url);
     m_reply = m_networkAccessManager->get(request);
+    m_requestType = 3;
     connect(m_reply, SIGNAL(error(QNetworkReply::NetworkError)), SLOT(requestNetworkError(QNetworkReply::NetworkError)));
     connect(m_reply, SIGNAL(finished()), SLOT(channelRequestFinished()));
 }
@@ -148,6 +150,7 @@ void TvkaistaClient::sendProgrammeRequest(int channelId, const QDate &date)
                         .arg(date.toString("dd/MM/yyyy")).arg(channelId);
     qDebug() << "GET" << urlString;
     m_reply = m_networkAccessManager->get(QNetworkRequest(QUrl(urlString)));
+    m_requestType = 4;
     connect(m_reply, SIGNAL(error(QNetworkReply::NetworkError)), SLOT(requestNetworkError(QNetworkReply::NetworkError)));
     connect(m_reply, SIGNAL(readyRead()), SLOT(programmeRequestReadyRead()));
     connect(m_reply, SIGNAL(finished()), SLOT(programmeRequestFinished()));
@@ -161,6 +164,7 @@ void TvkaistaClient::sendPosterRequest(const Programme &programme)
     QString urlString = QString("http://www.tvkaista.fi/resources/recordings/screengrabs/%1.jpg").arg(programme.id);
     qDebug() << "GET" << urlString;
     m_reply = m_networkAccessManager->get(QNetworkRequest(QUrl(urlString)));
+    m_requestType = 5;
     connect(m_reply, SIGNAL(error(QNetworkReply::NetworkError)), SLOT(requestNetworkError(QNetworkReply::NetworkError)));
     connect(m_reply, SIGNAL(finished()), SLOT(posterRequestFinished()));
     m_requestedProgramme = programme;
@@ -213,6 +217,7 @@ void TvkaistaClient::sendStreamRequest(const Programme &programme)
 
     qDebug() << "GET" << urlString;;
     m_reply = m_networkAccessManager->get(QNetworkRequest(QUrl(urlString)));
+    m_requestType = 6;
     connect(m_reply, SIGNAL(error(QNetworkReply::NetworkError)), SLOT(requestNetworkError(QNetworkReply::NetworkError)));
     connect(m_reply, SIGNAL(finished()), SLOT(streamRequestFinished()));
     m_requestedStream = programme;
@@ -222,10 +227,11 @@ void TvkaistaClient::sendStreamRequest(const Programme &programme)
 void TvkaistaClient::sendSearchRequest(const QString &phrase)
 {
     abortRequest();
-    QString urlString = QString("http://www.tvkaista.fi/feedbeta/search/title/%1/flv.mediarss").arg(phrase);
+    QString urlString = QString("http://services.tvkaista.fi/feedbeta/search/title/%1/flv.mediarss").arg(phrase);
     qDebug() << "GET" << urlString;
     QNetworkRequest request = QNetworkRequest(QUrl(urlString));
     m_reply = m_networkAccessManager->get(request);
+    m_requestType = 7;
     connect(m_reply, SIGNAL(error(QNetworkReply::NetworkError)), SLOT(requestNetworkError(QNetworkReply::NetworkError)));
     connect(m_reply, SIGNAL(finished()), SLOT(searchRequestFinished()));
 }
@@ -233,10 +239,11 @@ void TvkaistaClient::sendSearchRequest(const QString &phrase)
 void TvkaistaClient::sendSeasonPassListRequest()
 {
     abortRequest();
-    QString urlString = "http://tvkaista.fi/feedbeta/seasonpasses/*/standard.mediarss";
+    QString urlString = "http://services.tvkaista.fi/feedbeta/seasonpasses/*/standard.mediarss";
     qDebug() << "GET" << urlString;
     QNetworkRequest request = QNetworkRequest(QUrl(urlString));
     m_reply = m_networkAccessManager->get(request);
+    m_requestType = 8;
     connect(m_reply, SIGNAL(error(QNetworkReply::NetworkError)), SLOT(requestNetworkError(QNetworkReply::NetworkError)));
     connect(m_reply, SIGNAL(finished()), SLOT(seasonPassListRequestFinished()));
 }
@@ -244,45 +251,41 @@ void TvkaistaClient::sendSeasonPassListRequest()
 void TvkaistaClient::sendSeasonPassAddRequest(int programmeId)
 {
     abortRequest();
-    QString sid = sessionId();
-    QList<QPair<QString, QString> > items;
-    items << QPair<QString, QString>("callCount", "1");
-    items << QPair<QString, QString>("page", "/recordings/");
-    items << QPair<QString, QString>("httpSessionId", sid);
-    items << QPair<QString, QString>("scriptSessionId", sid);
-    items << QPair<QString, QString>("c0-scriptName", "TVKaistaCentreServer");
-    items << QPair<QString, QString>("c0-methodName", "addToSeasonPass");
-    items << QPair<QString, QString>("c0-id", "0");
-    items << QPair<QString, QString>("c0-param0", "boolean:false");
-    items << QPair<QString, QString>("c0-param1", QString("number:%1").arg(programmeId));
-    items << QPair<QString, QString>("batchId", "0");
-    QUrl url;
-    url.setQueryItems(items);
-    QByteArray data = url.toEncoded(QUrl::None);
-    data.remove(0, 1);
-    QString urlString = "http://tvkaista.fi/dwr/call/plaincall/TVKaistaCentreServer.addToSeasonPass.dwr";
-    qDebug() << "POST" << urlString;
-    qDebug() << data;
-    QNetworkRequest request = QNetworkRequest(QUrl(urlString));
-    m_reply = m_networkAccessManager->post(request, data);
+    QByteArray data("id=");
+    data.append(QString::number(programmeId));
+    QString urlString = "http://services.tvkaista.fi/feedbeta/seasonpasses/";
+    qDebug() << "POST" << urlString << data;
+    m_reply = m_networkAccessManager->post(QNetworkRequest(QUrl(urlString)), data);
+    m_requestType = 9;
     connect(m_reply, SIGNAL(error(QNetworkReply::NetworkError)), SLOT(requestNetworkError(QNetworkReply::NetworkError)));
     connect(m_reply, SIGNAL(finished()), SLOT(seasonPassAddRequestFinished()));
 }
 
+void TvkaistaClient::sendSeasonPassRemoveRequest(const Programme &programme)
+{
+    abortRequest();
+    m_requestedProgramme = programme;
+    QString urlString = "http://services.tvkaista.fi/feedbeta/seasonpasses/";
+    qDebug() << "GET" << urlString;
+    QNetworkRequest request = QNetworkRequest(QUrl(urlString));
+    m_reply = m_networkAccessManager->get(request);
+    m_requestType = 10;
+    connect(m_reply, SIGNAL(error(QNetworkReply::NetworkError)), SLOT(requestNetworkError(QNetworkReply::NetworkError)));
+    connect(m_reply, SIGNAL(finished()), SLOT(seasonPassIndexRequestFinished()));
+}
+
 void TvkaistaClient::frontPageRequestFinished()
 {
-    QList<QPair<QString, QString> > items;
-    items << QPair<QString, QString>("username", m_username);
-    items << QPair<QString, QString>("password", m_password);
-    items << QPair<QString, QString>("rememberme", "unlessnot");
-    items << QPair<QString, QString>("action", "login");
-    QUrl url;
-    url.setQueryItems(items);
-    QByteArray data = url.toEncoded(QUrl::None);
-    data.remove(0, 1);
+    QByteArray data;
+    data.append("username=");
+    data.append(m_username.toUtf8().toPercentEncoding());
+    data.append("&password=");
+    data.append(m_password.toUtf8().toPercentEncoding());
+    data.append("&rememberme=unlessnot&action=login");
     QString urlString = "http://www.tvkaista.fi/login/";
     qDebug() << "POST" << urlString;
     m_reply = m_networkAccessManager->post(QNetworkRequest(QUrl(urlString)), data);
+    m_requestType = 2;
     connect(m_reply, SIGNAL(error(QNetworkReply::NetworkError)), SLOT(requestNetworkError(QNetworkReply::NetworkError)));
     connect(m_reply, SIGNAL(finished()), SLOT(loginRequestFinished()));
 }
@@ -406,6 +409,10 @@ void TvkaistaClient::streamRequestFinished()
 
 void TvkaistaClient::searchRequestFinished()
 {
+    if (m_reply == 0) {
+        return;
+    }
+
     ProgrammeFeedParser parser;
 
     if (!parser.parse(m_reply)) {
@@ -432,14 +439,75 @@ void TvkaistaClient::seasonPassListRequestFinished()
 
 void TvkaistaClient::seasonPassAddRequestFinished()
 {
-    qDebug() << m_reply->readAll();
+    if (m_reply == 0) {
+        return;
+    }
+
+    qDebug() << "REPLY" << m_reply->readAll();
     m_reply->deleteLater();
     m_reply = 0;
-    emit addedToSeasonPass();
+    emit addedToSeasonPass(true);
+}
+
+void TvkaistaClient::seasonPassIndexRequestFinished()
+{
+    if (m_reply == 0) {
+        return;
+    }
+
+    ProgrammeFeedParser parser;
+
+    if (!parser.parse(m_reply)) {
+        qWarning() << parser.lastError();
+    }
+
+    QList<Programme> seasonPasses = parser.programmes();
+    int count = seasonPasses.size();
+    int seasonPassId = -1;
+
+    /* Etsitään id season passille ohjelman nimen perusteella. */
+    for (int i = 0; i < count; i++) {
+        Programme seasonPass = seasonPasses.at(i);
+
+        if (m_requestedProgramme.title.startsWith(seasonPass.title)) {
+            seasonPassId = seasonPass.id;
+            break;
+        }
+    }
+
+    m_reply->deleteLater();
+    m_reply = 0;
+
+    if (seasonPassId >= 0) {
+        QString urlString = QString("http://services.tvkaista.fi/feedbeta/seasonpasses/%1/").arg(seasonPassId);
+        qDebug() << "DELETE" << urlString;
+        QNetworkRequest request = QNetworkRequest(QUrl(urlString));
+        m_reply = m_networkAccessManager->deleteResource(request);
+        m_requestType = 11;
+        connect(m_reply, SIGNAL(error(QNetworkReply::NetworkError)), SLOT(requestNetworkError(QNetworkReply::NetworkError)));
+        connect(m_reply, SIGNAL(finished()), SLOT(seasonPassRemoveRequestFinished()));
+    }
+    else {
+        emit removedFromSeasonPass(false);
+    }
+}
+
+void TvkaistaClient::seasonPassRemoveRequestFinished()
+{
+    if (m_reply == 0) {
+        return;
+    }
+
+    qDebug() << "REPLY" << m_reply->readAll();
+    m_reply->deleteLater();
+    m_reply = 0;
+    emit removedFromSeasonPass(true);
 }
 
 void TvkaistaClient::requestNetworkError(QNetworkReply::NetworkError error)
 {
+    qDebug() << "ERROR" << error;
+
     if (error == QNetworkReply::OperationCanceledError || m_reply == 0) {
         return;
     }
@@ -450,10 +518,11 @@ void TvkaistaClient::requestNetworkError(QNetworkReply::NetworkError error)
     else if (m_requestedStream.id >= 0 && error == QNetworkReply::ContentNotFoundError) {
         m_networkError = 2;
     }
-    else if (error == QNetworkReply::ContentNotFoundError) {
-        return;
+    else if (m_requestType == 9 && error == QNetworkReply::UnknownContentError) {
+        /* Ohjelma on jo lisätty sarjoihin. */
+        m_networkError = 3;
     }
-    else {
+    else if (m_requestType >= 0) {
         m_networkError = 0;
         m_error = networkErrorString(error);
     }
@@ -471,6 +540,9 @@ void TvkaistaClient::handleNetworkError()
     }
     else if (m_networkError == 2) {
         emit streamNotFound();
+    }
+    else if (m_networkError == 3) {
+        emit addedToSeasonPass(false);
     }
     else {
         emit networkError();
@@ -500,6 +572,7 @@ void TvkaistaClient::abortRequest()
 
     m_requestedProgramme.id = -1;
     m_requestedStream.id = -1;
+    m_requestType = -1;
 }
 
 bool TvkaistaClient::checkResponse()
@@ -518,23 +591,6 @@ bool TvkaistaClient::checkResponse()
     }
 
     return true;
-}
-
-QString TvkaistaClient::sessionId() const
-{
-    QList<QNetworkCookie> cookies = m_networkAccessManager->cookieJar()->cookiesForUrl(QUrl("http://www.tvkaista.fi/"));
-    QString sid;
-    int count = cookies.size();
-
-    for (int i = 0; i < count; i++) {
-        QNetworkCookie cookie = cookies.at(i);
-
-        if (cookie.name() == "JSESSIONID") {
-            sid = cookie.value();
-        }
-    }
-
-    return sid;
 }
 
 QString TvkaistaClient::networkErrorString(QNetworkReply::NetworkError error)
