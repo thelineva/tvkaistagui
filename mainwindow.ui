@@ -970,6 +970,9 @@
    <property name="text">
     <string>Sarjat</string>
    </property>
+   <property name="toolTip">
+    <string>Näytä sarjat</string>
+   </property>
   </action>
   <action name="actionSeasonPasses">
    <property name="checkable">
