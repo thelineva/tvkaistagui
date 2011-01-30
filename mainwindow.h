@@ -99,7 +99,7 @@ private:
     void fetchChannels(bool refresh);
     void fetchProgrammes(int channelId, const QDate &date, bool refresh);
     void fetchSearchResults(const QString &phrase);
-    void fetchSeasonPasses();
+    void fetchSeasonPasses(bool refresh);
     bool fetchPoster();
     void loadClientSettings();
     void updateFontSize();

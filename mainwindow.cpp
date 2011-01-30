@@ -506,7 +506,7 @@ void MainWindow::refreshProgrammes()
         fetchSearchResults(m_searchPhrase);
     }
     else if (m_currentView == 2) {
-        fetchSeasonPasses();
+        fetchSeasonPasses(true);
     }
     else {
         fetchProgrammes(m_currentChannelId, m_currentDate, true);
@@ -788,7 +788,7 @@ void MainWindow::showSeasonPasses()
 {
     if (setCurrentView(2)) {
         if (m_seasonPassesTableModel->programmeCount() == 0) {
-            fetchSeasonPasses();
+            fetchSeasonPasses(false);
         }
     }
     else {
@@ -999,7 +999,7 @@ void MainWindow::seasonPassListFetched(const QList<Programme> &programmes)
 
 void MainWindow::addedToSeasonPass(bool ok)
 {
-    fetchSeasonPasses();
+    fetchSeasonPasses(true);
 
     if (ok) {
         QMessageBox msgBox(this);
@@ -1021,7 +1021,7 @@ void MainWindow::addedToSeasonPass(bool ok)
 
 void MainWindow::removedFromSeasonPass(bool ok)
 {
-    fetchSeasonPasses();
+    fetchSeasonPasses(true);
 
     if (ok) {
         QMessageBox msgBox(this);
@@ -1154,14 +1154,21 @@ void MainWindow::fetchSearchResults(const QString &phrase)
     setCurrentView(1);
 }
 
-void MainWindow::fetchSeasonPasses()
+void MainWindow::fetchSeasonPasses(bool refresh)
 {
-    if (!m_client->isValidUsernameAndPassword()) {
+    bool ok;
+    int age;
+    QList<Programme> programmes = m_cache->loadSeasonPasses(ok, age);
+
+    if (ok && !refresh) {
+        seasonPassListFetched(programmes);
         return;
     }
 
-    m_client->sendSeasonPassListRequest();
-    startLoadingAnimation();
+    if (m_client->isValidUsernameAndPassword()) {
+        m_client->sendSeasonPassListRequest();
+        startLoadingAnimation();
+    }
 }
 
 bool MainWindow::fetchPoster()
