@@ -211,6 +211,11 @@ void ProgrammeTableModel::setProgrammes(const QList<Programme> &programmes)
     }
 }
 
+QList<Programme> ProgrammeTableModel::programmes() const
+{
+    return m_programmes;
+}
+
 void ProgrammeTableModel::setSeasonPasses(const QMap<QString, int> &seasonPasses)
 {
     QList<QString> keys = seasonPasses.keys();
