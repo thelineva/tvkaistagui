@@ -989,6 +989,8 @@ void MainWindow::searchResultsFetched(const QList<Programme> &programmes)
 
 void MainWindow::seasonPassListFetched(const QList<Programme> &programmes)
 {
+    bool scroll = m_seasonPassesTableModel->programmeCount() == 0;
+
     if (programmes.isEmpty()) {
         m_seasonPassesTableModel->setInfoText(trUtf8("Ei sarjoja"));
     }
@@ -997,8 +999,11 @@ void MainWindow::seasonPassListFetched(const QList<Programme> &programmes)
 
         if (m_currentView == 2) {
             updateColumnSizes();
-            ui->programmeTableView->setFocus();
-            scrollProgrammes();
+
+            if (scroll) {
+                ui->programmeTableView->setFocus();
+                scrollProgrammes();
+            }
         }
     }
 
