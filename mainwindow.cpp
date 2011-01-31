@@ -174,6 +174,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(m_client, SIGNAL(streamUrlFetched(Programme,int,QUrl)), SLOT(streamUrlFetched(Programme,int,QUrl)));
     connect(m_client, SIGNAL(searchResultsFetched(QList<Programme>)), SLOT(searchResultsFetched(QList<Programme>)));
     connect(m_client, SIGNAL(seasonPassListFetched(QList<Programme>)), SLOT(seasonPassListFetched(QList<Programme>)));
+    connect(m_client, SIGNAL(seasonPassIndexFetched(QMap<QString,int>)), SLOT(seasonPassIndexFetched(QMap<QString,int>)));
     connect(m_client, SIGNAL(addedToSeasonPass(bool)), SLOT(addedToSeasonPass(bool)));
     connect(m_client, SIGNAL(removedFromSeasonPass(bool)), SLOT(removedFromSeasonPass(bool)));
     connect(m_client, SIGNAL(networkError()), SLOT(networkError()));
@@ -427,8 +428,10 @@ void MainWindow::programmeSelectionChanged()
         }
     }
 
-    ui->addToSeasonPassPushButton->setEnabled(true);
-    ui->actionAddToSeasonPass->setEnabled(true);
+    /* Ohjelmaa ei voi poistaa sarjoista, jos season pass id:tä ei ole haettu. */
+    bool enabled = m_currentView != 2 || (m_currentView == 2 && m_currentProgramme.seasonPassId >= 0);
+    ui->addToSeasonPassPushButton->setEnabled(enabled);
+    ui->actionAddToSeasonPass->setEnabled(enabled);
     updateDescription();
 }
 
@@ -881,7 +884,7 @@ void MainWindow::addToSeasonPass()
     }
 
     if (m_currentView == 2) {
-        m_client->sendSeasonPassRemoveRequest(m_currentProgramme);
+        m_client->sendSeasonPassRemoveRequest(m_currentProgramme.seasonPassId);
     }
     else {
         m_client->sendSeasonPassAddRequest(m_currentProgramme.id);
@@ -999,6 +1002,18 @@ void MainWindow::seasonPassListFetched(const QList<Programme> &programmes)
         }
     }
 
+    if (m_client->isValidUsernameAndPassword()) {
+        m_client->sendSeasonPassIndexRequest();
+    }
+    else {
+        stopLoadingAnimation();
+    }
+}
+
+void MainWindow::seasonPassIndexFetched(const QMap<QString, int> &seasonPasses)
+{
+    m_seasonPassesTableModel->setSeasonPasses(seasonPasses);
+    programmeSelectionChanged();
     stopLoadingAnimation();
 }
 
@@ -1167,7 +1182,10 @@ void MainWindow::fetchSeasonPasses(bool refresh)
 
     if (ok && !refresh) {
         seasonPassListFetched(programmes);
-        return;
+
+        if (age < 10 * 60) {
+            return;
+        }
     }
 
     if (m_client->isValidUsernameAndPassword()) {
