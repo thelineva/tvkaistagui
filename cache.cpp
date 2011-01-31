@@ -305,6 +305,12 @@ QList<Programme> Cache::readProgrammeFeed(QIODevice *device, int channelId, bool
             programme.duration = duration;
         }
 
+        int seasonPassId = attrs.value("seasonPass").toString().toInt(&intOk);
+
+        if (intOk) {
+            programme.seasonPassId = seasonPassId;
+        }
+
         while (reader.readNextStartElement()) {
             if (reader.name() == "title") {
                 programme.title = reader.readElementText();
@@ -355,6 +361,10 @@ void Cache::writeProgrammeFeed(QIODevice *device, const QDateTime &updateDateTim
 
         if (programme.duration >= 0) {
             writer.writeAttribute("duration", QString::number(programme.duration));
+        }
+
+        if (programme.seasonPassId >= 0) {
+            writer.writeAttribute("seasonPass", QString::number(programme.seasonPassId));
         }
 
         writer.writeTextElement("title", programme.title);
