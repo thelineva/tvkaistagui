@@ -989,23 +989,7 @@ void MainWindow::searchResultsFetched(const QList<Programme> &programmes)
 
 void MainWindow::seasonPassListFetched(const QList<Programme> &programmes)
 {
-    bool scroll = m_seasonPassesTableModel->programmeCount() == 0;
-
-    if (programmes.isEmpty()) {
-        m_seasonPassesTableModel->setInfoText(trUtf8("Ei sarjoja"));
-    }
-    else {
-        m_seasonPassesTableModel->setProgrammes(programmes);
-
-        if (m_currentView == 2) {
-            updateColumnSizes();
-
-            if (scroll) {
-                ui->programmeTableView->setFocus();
-                scrollProgrammes();
-            }
-        }
-    }
+    updateSeasonPasses(programmes);
 
     if (m_client->isValidUsernameAndPassword()) {
         m_client->sendSeasonPassIndexRequest();
@@ -1018,6 +1002,7 @@ void MainWindow::seasonPassListFetched(const QList<Programme> &programmes)
 void MainWindow::seasonPassIndexFetched(const QMap<QString, int> &seasonPasses)
 {
     m_seasonPassesTableModel->setSeasonPasses(seasonPasses);
+    m_cache->saveSeasonPasses(QDateTime::currentDateTime(), m_seasonPassesTableModel->programmes());
     programmeSelectionChanged();
     stopLoadingAnimation();
 }
@@ -1186,7 +1171,7 @@ void MainWindow::fetchSeasonPasses(bool refresh)
     QList<Programme> programmes = m_cache->loadSeasonPasses(ok, age);
 
     if (ok && !refresh) {
-        seasonPassListFetched(programmes);
+        updateSeasonPasses(programmes);
 
         if (age < 10 * 60) {
             return;
@@ -1423,6 +1408,27 @@ void MainWindow::updateCalendar()
         ui->calendarWidget->setDateTextFormat(currentDate, textFormat);
 
         m_formattedDate = currentDate;
+    }
+}
+
+void MainWindow::updateSeasonPasses(const QList<Programme> &programmes)
+{
+    bool scroll = m_seasonPassesTableModel->programmeCount() == 0;
+
+    if (programmes.isEmpty()) {
+        m_seasonPassesTableModel->setInfoText(trUtf8("Ei sarjoja"));
+    }
+    else {
+        m_seasonPassesTableModel->setProgrammes(programmes);
+
+        if (m_currentView == 2) {
+            updateColumnSizes();
+
+            if (scroll) {
+                ui->programmeTableView->setFocus();
+                scrollProgrammes();
+            }
+        }
     }
 }
 

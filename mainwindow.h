@@ -111,6 +111,7 @@ private:
     void updateDescription();
     void updateWindowTitle();
     void updateCalendar();
+    void updateSeasonPasses(const QList<Programme> &programmes);
     void setFormat(int format);
     void scrollProgrammes();
     void startLoadingAnimation();
