@@ -15,6 +15,7 @@ public:
     int channelId;
     int flags;
     int duration;
+    int seasonPassId;
 };
 
 #endif // PROGRAMME_H
