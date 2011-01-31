@@ -20,6 +20,7 @@ public:
     int sortKey() const;
     bool isDescending() const;
     void setProgrammes(const QList<Programme> &programmes);
+    void setSeasonPasses(const QMap<QString, int> &seasonPasses);
     int programmeCount() const;
     void setInfoText(const QString &text);
     QString infoText() const;

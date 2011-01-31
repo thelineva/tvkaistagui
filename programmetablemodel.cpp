@@ -195,6 +195,26 @@ void ProgrammeTableModel::setProgrammes(const QList<Programme> &programmes)
     }
 }
 
+void ProgrammeTableModel::setSeasonPasses(const QMap<QString, int> &seasonPasses)
+{
+    QList<QString> keys = seasonPasses.keys();
+    int programmeCount = m_programmes.size();
+    int seasonPassCount = seasonPasses.size();
+
+    for (int i = 0; i < programmeCount; i++) {
+        Programme programme = m_programmes.at(i);
+
+        for (int j = 0; j < seasonPassCount; j++) {
+            QString seasonPassTitle = keys.at(j);
+
+            if (programme.title.startsWith(seasonPassTitle)) {
+                programme.seasonPassId = seasonPasses.value(keys.at(j));
+                m_programmes.replace(i, programme);
+            }
+        }
+    }
+}
+
 int ProgrammeTableModel::programmeCount() const
 {
     return m_programmes.size();
