@@ -44,8 +44,9 @@ public:
     void sendStreamRequest(const Programme &programme);
     void sendSearchRequest(const QString &phrase);
     void sendSeasonPassListRequest();
+    void sendSeasonPassIndexRequest();
     void sendSeasonPassAddRequest(int programmeId);
-    void sendSeasonPassRemoveRequest(const Programme &programme);
+    void sendSeasonPassRemoveRequest(int seasonPassId);
     QNetworkReply* sendDetailedFeedRequest(const Programme &programme);
     QNetworkReply* sendRequest(const QUrl &url);
     QNetworkReply* sendRequestWithAuthHeader(const QUrl &url);
@@ -59,6 +60,7 @@ signals:
     void streamUrlFetched(const Programme &programme, int format, const QUrl &url);
     void searchResultsFetched(const QList<Programme> &programmes);
     void seasonPassListFetched(const QList<Programme> &programmes);
+    void seasonPassIndexFetched(const QMap<QString, int> &seasonPasses);
     void addedToSeasonPass(bool ok);
     void removedFromSeasonPass(bool ok);
     void streamNotFound();
@@ -75,8 +77,8 @@ private slots:
     void streamRequestFinished();
     void searchRequestFinished();
     void seasonPassListRequestFinished();
-    void seasonPassAddRequestFinished();
     void seasonPassIndexRequestFinished();
+    void seasonPassAddRequestFinished();
     void seasonPassRemoveRequestFinished();
     void requestAuthenticationRequired(QNetworkReply *reply, QAuthenticator* authenticator);
     void requestNetworkError(QNetworkReply::NetworkError error);
@@ -85,6 +87,7 @@ private slots:
 private:
     void abortRequest();
     bool checkResponse();
+    void setServerCookie();
     QNetworkAccessManager *m_networkAccessManager;
     QNetworkReply *m_reply;
     Cache *m_cache;
