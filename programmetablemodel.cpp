@@ -146,15 +146,25 @@ bool ProgrammeTableModel::isDescending() const
 void ProgrammeTableModel::setProgrammes(const QList<Programme> &programmes)
 {
     setInfoText(QString());
+    bool numRowsChanged = (m_programmes.size() != programmes.size());
 
     if (!m_programmes.isEmpty()) {
-        beginRemoveRows(QModelIndex(), 0, m_programmes.size() - 1);
+        if (numRowsChanged) {
+            beginRemoveRows(QModelIndex(), 0, m_programmes.size() - 1);
+        }
+
         m_programmes.clear();
-        endRemoveRows();
+
+        if (numRowsChanged) {
+            endRemoveRows();
+        }
     }
 
     if (!programmes.isEmpty()) {
-        beginInsertRows(QModelIndex(), 0, programmes.size() - 1);
+        if (numRowsChanged) {
+            beginInsertRows(QModelIndex(), 0, programmes.size() - 1);
+        }
+
         QList<Programme> tmp;
         int count = programmes.size();
 
@@ -191,7 +201,13 @@ void ProgrammeTableModel::setProgrammes(const QList<Programme> &programmes)
             m_programmes = tmp;
         }
 
-        endInsertRows();
+        if (numRowsChanged) {
+            endInsertRows();
+        }
+        else {
+            emit dataChanged(index(0, 0, QModelIndex()),
+                 index(m_programmes.size() - 1, columnCount(QModelIndex()) - 1, QModelIndex()));
+        }
     }
 }
 
