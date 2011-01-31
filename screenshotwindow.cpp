@@ -161,6 +161,7 @@ void ScreenshotWindow::feedRequestFinished()
 
     m_thumbnails = parser.thumbnails();
     m_reply->deleteLater();
+    m_reply = 0;
 
     if (m_thumbnails.isEmpty()) {
         screenshotsNotFound();
@@ -204,6 +205,7 @@ void ScreenshotWindow::thumbnailsToQueue()
 void ScreenshotWindow::thumbnailRequestFinished()
 {
     if (m_reply == 0 || m_queue.isEmpty()) {
+        qDebug() << "empty";
         return;
     }
 
@@ -228,6 +230,7 @@ void ScreenshotWindow::thumbnailRequestFinished()
     pixmap.loadFromData(m_reply->readAll());
     m_reply->deleteLater();
     m_reply = 0;
+    qDebug() << (m_reply == 0);
 
     if (!pixmap.isNull()) {
         QIcon icon(pixmap);
