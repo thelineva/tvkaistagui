@@ -208,7 +208,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     action = new QAction(this);
     action->setShortcut(Qt::Key_F5);
-    connect(action, SIGNAL(triggered()), ui->downloadsTableView, SLOT(setFocus()));
+    connect(action, SIGNAL(triggered()), SLOT(setFocusToDownloadsList()));
     addAction(action);
 
     action = new QAction(this);
@@ -944,6 +944,12 @@ void MainWindow::setFocusToSearchField()
 {
     m_searchComboBox->setFocus();
     m_searchComboBox->lineEdit()->selectAll();
+}
+
+void MainWindow::setFocusToDownloadsList()
+{
+    ui->downloadsDockWidget->setVisible(true);
+    ui->downloadsTableView->setFocus();
 }
 
 void MainWindow::addToPlaylist()

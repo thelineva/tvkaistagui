@@ -82,6 +82,7 @@ private slots:
     void setFocusToCalendar();
     void setFocusToChannelList();
     void setFocusToSearchField();
+    void setFocusToDownloadsList();
     void addToPlaylist();
     void addToSeasonPass();
     void copyMiroFeedUrl();
