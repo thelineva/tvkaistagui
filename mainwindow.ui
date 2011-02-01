@@ -240,9 +240,6 @@
     <property name="title">
      <string>&amp;Näytä</string>
     </property>
-    <addaction name="actionCurrentDay"/>
-    <addaction name="actionPreviousDay"/>
-    <addaction name="actionNextDay"/>
     <addaction name="actionRefresh"/>
     <addaction name="separator"/>
     <addaction name="actionProgrammeList"/>
@@ -264,8 +261,17 @@
      <string>&amp;Palvelin</string>
     </property>
    </widget>
+   <widget class="QMenu" name="menuGoTo">
+    <property name="title">
+     <string>&amp;Siirry</string>
+    </property>
+    <addaction name="actionCurrentDay"/>
+    <addaction name="actionPreviousDay"/>
+    <addaction name="actionNextDay"/>
+   </widget>
    <addaction name="menuProgramme"/>
    <addaction name="menuView"/>
+   <addaction name="menuGoTo"/>
    <addaction name="menuServer"/>
    <addaction name="menuHelp"/>
   </widget>
@@ -929,9 +935,6 @@
    <property name="text">
     <string>&amp;Ohjelmatiedot</string>
    </property>
-   <property name="shortcut">
-    <string>Ctrl+D</string>
-   </property>
   </action>
   <action name="actionSortByTimeAsc">
    <property name="checkable">
@@ -995,6 +998,9 @@
    </property>
    <property name="text">
     <string>Lisää sarjoihin</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+D</string>
    </property>
    <property name="iconVisibleInMenu">
     <bool>true</bool>
