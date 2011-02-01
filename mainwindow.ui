@@ -193,7 +193,7 @@
          <string>Näytä kuluvan päivän ohjelmatiedot</string>
         </property>
         <property name="text">
-         <string>Kuluva &amp;päivä</string>
+         <string>&amp;Tänään</string>
         </property>
         <property name="icon">
          <iconset resource="images.qrc">
@@ -875,7 +875,7 @@
      <normaloff>:/images/today-16x16.png</normaloff>:/images/today-16x16.png</iconset>
    </property>
    <property name="text">
-    <string>&amp;Kuluva päivä</string>
+    <string>&amp;Tänään</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+T</string>
