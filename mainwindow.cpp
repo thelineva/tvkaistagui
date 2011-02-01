@@ -293,6 +293,7 @@ MainWindow::MainWindow(QWidget *parent) :
     m_searchComboBox->addItems(m_searchHistory);
     m_searchComboBox->setCurrentIndex(-1);
     setSortKeyToModel(m_settings.value("sortProgrammes").toString(), m_searchResultsTableModel);
+    setSortKeyToModel(m_settings.value("sortPlaylist").toString(), m_playlistTableModel);
     setSortKeyToModel(m_settings.value("sortSeasonPasses").toString(), m_seasonPassesTableModel);
     m_settings.endGroup();
 
@@ -388,6 +389,7 @@ void MainWindow::closeEvent(QCloseEvent *e)
     m_settings.endArray();
 
     m_settings.setValue("sortProgrammes", sortKeyFromModel(m_searchResultsTableModel));
+    m_settings.setValue("sortPlaylist", sortKeyFromModel(m_playlistTableModel));
     m_settings.setValue("sortSeasonPasses", sortKeyFromModel(m_seasonPassesTableModel));
     m_settings.endGroup();
 
@@ -1008,7 +1010,7 @@ void MainWindow::copyMiroFeedUrl()
     else if (m_currentView == 3) {
         QString seasonPassIdString = "*";
 
-        if (m_currentProgramme.id >= 0) {
+        if (m_currentProgramme.id >= 0 && m_currentProgramme.seasonPassId >= 0) {
             seasonPassIdString = QString::number(m_currentProgramme.seasonPassId);
         }
 
@@ -1049,7 +1051,7 @@ void MainWindow::copyItunesFeedUrl()
     else if (m_currentView == 3) {
         QString seasonPassIdString = "*";
 
-        if (m_currentProgramme.id >= 0) {
+        if (m_currentProgramme.id >= 0 && m_currentProgramme.seasonPassId >= 0) {
             seasonPassIdString = QString::number(m_currentProgramme.seasonPassId);
         }
 
