@@ -89,8 +89,7 @@ private slots:
     void searchResultsFetched(const QList<Programme> &programmes);
     void seasonPassListFetched(const QList<Programme> &programmes);
     void seasonPassIndexFetched(const QMap<QString, int> &seasonPasses);
-    void addedToSeasonPass(bool ok);
-    void removedFromSeasonPass(bool ok);
+    void editRequestFinished(int type, bool ok);
     void posterTimeout();
     void downloadFinished();
     void networkError();
