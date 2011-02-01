@@ -28,5 +28,6 @@
         <file>images/image-16x16.png</file>
         <file>images/season-pass-16x16.png</file>
         <file>images/season-pass-22x22.png</file>
+        <file>images/playlist-16x16.png</file>
     </qresource>
 </RCC>
