@@ -84,6 +84,8 @@ private slots:
     void setFocusToSearchField();
     void addToPlaylist();
     void addToSeasonPass();
+    void copyMiroFeedUrl();
+    void copyItunesFeedUrl();
     void setCurrentServer(int index);
     void channelsFetched(const QList<Channel> &channels);
     void programmesFetched(int channelId, const QDate &date, const QList<Programme> &programmes);

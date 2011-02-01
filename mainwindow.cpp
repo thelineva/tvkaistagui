@@ -1,3 +1,4 @@
+#include <QClipboard>
 #include <QCloseEvent>
 #include <QComboBox>
 #include <QDebug>
@@ -128,6 +129,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->programmeTableView->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)), SLOT(programmeSelectionChanged()));
     connect(ui->programmeTableView, SIGNAL(activated(QModelIndex)), SLOT(programmeDoubleClicked()));
     connect(ui->programmeTableView, SIGNAL(customContextMenuRequested(QPoint)), SLOT(programmeMenuRequested(QPoint)));
+    connect(ui->actionCopyMiroFeedUrl, SIGNAL(triggered()), SLOT(copyMiroFeedUrl()));
+    connect(ui->actionCopyItunesFeedUrl, SIGNAL(triggered()), SLOT(copyItunesFeedUrl()));
     connect(ui->actionSortByTimeAsc, SIGNAL(triggered()), SLOT(sortByTimeAsc()));
     connect(ui->actionSortByTimeDesc, SIGNAL(triggered()), SLOT(sortByTimeDesc()));
     connect(ui->actionSortByTitleAsc, SIGNAL(triggered()), SLOT(sortByTitleAsc()));
@@ -500,6 +503,11 @@ void MainWindow::programmeMenuRequested(const QPoint &point)
     menu.addAction(ui->actionAddToSeasonPass);
     menu.addSeparator();
     menu.addAction(ui->actionRefresh);
+
+    if (m_currentView == 2 || m_currentView == 3) {
+        menu.addAction(ui->actionCopyMiroFeedUrl);
+        menu.addAction(ui->actionCopyItunesFeedUrl);
+    }
 
     if (m_currentView != 0) {
         int sortKey = m_currentTableModel->sortKey();
@@ -968,6 +976,88 @@ void MainWindow::addToSeasonPass()
 
     ui->addToSeasonPassPushButton->setEnabled(false);
     ui->actionAddToSeasonPass->setEnabled(false);
+}
+
+void MainWindow::copyMiroFeedUrl()
+{
+    QString filename;
+
+    switch (m_client->format()) {
+    case 0:
+        filename = "mp4.rss";
+        break;
+
+    case 1:
+        filename = "flv.rss";
+        break;
+
+    case 2:
+        filename = "h264.rss";
+        break;
+
+    default:
+        filename = "ts.rss";
+    }
+
+    if (m_currentView == 2) {
+        QString url = QString("http://%1:%2@tvkaista.fi/feed/playlist/%3").arg(
+            m_client->username().toUtf8().toPercentEncoding(),
+            m_client->password().toUtf8().toPercentEncoding(), filename);
+        QApplication::clipboard()->setText(url);
+    }
+    else if (m_currentView == 3) {
+        QString seasonPassIdString = "*";
+
+        if (m_currentProgramme.id >= 0) {
+            seasonPassIdString = QString::number(m_currentProgramme.seasonPassId);
+        }
+
+        QString url = QString("http://%1:%2@tvkaista.fi/feed/seasonpasses/%3/%4").arg(
+            m_client->username().toUtf8().toPercentEncoding(),
+            m_client->password().toUtf8().toPercentEncoding(), seasonPassIdString, filename);
+        QApplication::clipboard()->setText(url);
+    }
+}
+
+void MainWindow::copyItunesFeedUrl()
+{
+    QString filename;
+
+    switch (m_client->format()) {
+    case 0:
+        filename = "mp4.itunes";
+        break;
+
+    case 1:
+        filename = "flv.itunes";
+        break;
+
+    case 2:
+        filename = "h264.itunes";
+        break;
+
+    default:
+        filename = "ts.itunes";
+    }
+
+    if (m_currentView == 2) {
+        QString url = QString("itpc://%1:%2@tvkaista.fi/feed/playlist/%3").arg(
+            m_client->username().toUtf8().toPercentEncoding(),
+            m_client->password().toUtf8().toPercentEncoding(), filename);
+        QApplication::clipboard()->setText(url);
+    }
+    else if (m_currentView == 3) {
+        QString seasonPassIdString = "*";
+
+        if (m_currentProgramme.id >= 0) {
+            seasonPassIdString = QString::number(m_currentProgramme.seasonPassId);
+        }
+
+        QString url = QString("itpc://%1:%2@tvkaista.fi/feed/seasonpasses/%3/%4").arg(
+            m_client->username().toUtf8().toPercentEncoding(),
+            m_client->password().toUtf8().toPercentEncoding(), seasonPassIdString, filename);
+        QApplication::clipboard()->setText(url);
+    }
 }
 
 void MainWindow::setCurrentServer(int index)

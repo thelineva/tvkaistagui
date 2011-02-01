@@ -1061,6 +1061,19 @@
     <bool>true</bool>
    </property>
   </action>
+  <action name="actionCopyMiroFeedUrl">
+   <property name="text">
+    <string>Kopioi &amp;Miro-syötteen osoite</string>
+   </property>
+  </action>
+  <action name="actionCopyItunesFeedUrl">
+   <property name="text">
+    <string>Kopioi iTunes-syötteen osoite</string>
+   </property>
+   <property name="toolTip">
+    <string>Kopioi i&amp;Tunes-syötteen osoite</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
