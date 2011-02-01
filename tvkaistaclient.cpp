@@ -257,7 +257,7 @@ void TvkaistaClient::sendSearchRequest(const QString &phrase)
 void TvkaistaClient::sendPlaylistRequest()
 {
     abortRequest();
-    QString urlString = "http://services.tvkaista.fi/feedbeta/playlist/";
+    QString urlString = "http://services.tvkaista.fi/feedbeta/playlist/standard.mediarss";
     qDebug() << "GET" << urlString;
     QNetworkRequest request = QNetworkRequest(QUrl(urlString));
     m_reply = m_networkAccessManager->get(request);
