@@ -33,6 +33,7 @@ MainWindow::MainWindow(QWidget *parent) :
     m_downloadTableModel(new DownloadTableModel(&m_settings, this)),
     m_programmeListTableModel(new ProgrammeTableModel(false, this)),
     m_searchResultsTableModel(new ProgrammeTableModel(true, this)),
+    m_playlistTableModel(new ProgrammeTableModel(true, this)),
     m_seasonPassesTableModel(new ProgrammeTableModel(true, this)),
     m_currentTableModel(m_programmeListTableModel),
     m_cache(new Cache), m_settingsDialog(0), m_screenshotWindow(0),
@@ -79,7 +80,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->toolBar->addWidget(m_searchComboBox);
     ui->toolBar->addWidget(m_searchToolButton);
     ui->toolBar->addWidget(m_loadLabel);
-    ui->toolBar->setStyleSheet("QLabel { padding-left: 10px; padding-right: 5px; }");
+    ui->toolBar->setStyleSheet("QToolButton { height: " + QString::number(m_searchComboBox->height()) +
+                               "px; } QLabel { padding-left: 10px; padding-right: 5px; }");
     ui->splitter->setSizes(QList<int>() << 200 << 150);
 
     QIcon icon;
@@ -147,13 +149,17 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionProgrammeListButton, SIGNAL(triggered()), SLOT(showProgrammeList()));
     connect(ui->actionSearchResults, SIGNAL(triggered()), SLOT(showSearchResults()));
     connect(ui->actionSearchResultsButton, SIGNAL(triggered()), SLOT(showSearchResults()));
+    connect(ui->actionPlaylist, SIGNAL(triggered()), SLOT(showPlaylist()));
+    connect(ui->actionPlaylistButton, SIGNAL(triggered()), SLOT(showPlaylist()));
     connect(ui->actionSeasonPasses, SIGNAL(triggered()), SLOT(showSeasonPasses()));
     connect(ui->actionSeasonPassesButton, SIGNAL(triggered()), SLOT(showSeasonPasses()));
     connect(ui->actionAddToSeasonPass, SIGNAL(triggered()), SLOT(addToSeasonPass()));
+    connect(ui->actionAddToPlaylist, SIGNAL(triggered()), SLOT(addToPlaylist()));
     connect(ui->actionPlayFile, SIGNAL(triggered()), SLOT(playDownloadedFile()));
     connect(ui->watchPushButton, SIGNAL(clicked()), SLOT(watchProgramme()));
     connect(ui->downloadPushButton, SIGNAL(clicked()), SLOT(downloadProgramme()));
     connect(ui->screenshotsPushButton, SIGNAL(clicked()), SLOT(openScreenshotWindow()));
+    connect(ui->addToPlaylistPushButton, SIGNAL(clicked()), SLOT(addToPlaylist()));
     connect(ui->addToSeasonPassPushButton, SIGNAL(clicked()), SLOT(addToSeasonPass()));
     connect(ui->playFilePushButton, SIGNAL(clicked()), SLOT(playDownloadedFile()));
     connect(ui->actionOpenDirectory, SIGNAL(triggered()), SLOT(openDirectory()));
@@ -173,6 +179,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(m_client, SIGNAL(posterFetched(Programme,QImage)), SLOT(posterFetched(Programme,QImage)));
     connect(m_client, SIGNAL(streamUrlFetched(Programme,int,QUrl)), SLOT(streamUrlFetched(Programme,int,QUrl)));
     connect(m_client, SIGNAL(searchResultsFetched(QList<Programme>)), SLOT(searchResultsFetched(QList<Programme>)));
+    connect(m_client, SIGNAL(playlistFetched(QList<Programme>)), SLOT(playlistFetched(QList<Programme>)));
     connect(m_client, SIGNAL(seasonPassListFetched(QList<Programme>)), SLOT(seasonPassListFetched(QList<Programme>)));
     connect(m_client, SIGNAL(seasonPassIndexFetched(QMap<QString,int>)), SLOT(seasonPassIndexFetched(QMap<QString,int>)));
     connect(m_client, SIGNAL(editRequestFinished(int,bool)), SLOT(editRequestFinished(int, bool)));
@@ -204,6 +211,11 @@ MainWindow::MainWindow(QWidget *parent) :
     action = new QAction(this);
     action->setShortcut(Qt::Key_F6);
     connect(action, SIGNAL(triggered()), m_searchComboBox, SLOT(setFocus()));
+    addAction(action);
+
+    action = new QAction(this);
+    action->setShortcut(Qt::CTRL | Qt::Key_F);
+    connect(action, SIGNAL(triggered()), SLOT(setFocusToSearchField()));
     addAction(action);
 
     action = new QAction(this);
@@ -438,9 +450,11 @@ void MainWindow::programmeSelectionChanged()
     }
 
     /* Ohjelmaa ei voi poistaa sarjoista, jos season pass id:tä ei ole haettu. */
-    bool enabled = m_currentView != 2 || (m_currentView == 2 && m_currentProgramme.seasonPassId >= 0);
+    bool enabled = m_currentView != 3 || (m_currentView == 3 && m_currentProgramme.seasonPassId >= 0);
     ui->addToSeasonPassPushButton->setEnabled(enabled);
     ui->actionAddToSeasonPass->setEnabled(enabled);
+    ui->addToPlaylistPushButton->setEnabled(true);
+    ui->actionAddToPlaylist->setEnabled(true);
     updateDescription();
 }
 
@@ -481,6 +495,10 @@ void MainWindow::programmeMenuRequested(const QPoint &point)
     menu.addAction(ui->actionWatch);
     menu.addAction(ui->actionDownload);
     menu.addAction(ui->actionScreenshots);
+    menu.addSeparator();
+    menu.addAction(ui->actionAddToPlaylist);
+    menu.addAction(ui->actionAddToSeasonPass);
+    menu.addSeparator();
     menu.addAction(ui->actionRefresh);
 
     if (m_currentView != 0) {
@@ -515,6 +533,9 @@ void MainWindow::refreshProgrammes()
         fetchSearchResults(m_searchPhrase);
     }
     else if (m_currentView == 2) {
+        fetchPlaylist(true);
+    }
+    else if (m_currentView == 3) {
         fetchSeasonPasses(true);
     }
     else {
@@ -789,12 +810,21 @@ void MainWindow::showSearchResults()
     }
 }
 
-void MainWindow::showSeasonPasses()
+void MainWindow::showPlaylist()
 {
     if (setCurrentView(2)) {
-        if (m_seasonPassesTableModel->programmeCount() == 0) {
-            fetchSeasonPasses(false);
-        }
+        fetchPlaylist(false);
+    }
+    else {
+        ui->actionSearchResultsButton->setChecked(true);
+        ui->actionSearchResults->setChecked(true);
+    }
+}
+
+void MainWindow::showSeasonPasses()
+{
+    if (setCurrentView(3)) {
+        fetchSeasonPasses(false);
     }
     else {
         ui->actionSearchResultsButton->setChecked(true);
@@ -812,22 +842,33 @@ bool MainWindow::setCurrentView(int view)
     ui->calendarWidget->setVisible(view == 0);
     ui->channelListWidget->setVisible(view == 0);
     ui->currentDayPushButton->setVisible(view == 0);
-    ui->actionSearchResults->setChecked(view == 1);
-    ui->actionSearchResultsButton->setChecked(view == 1);
     ui->actionProgrammeList->setChecked(view == 0);
     ui->actionProgrammeListButton->setChecked(view == 0);
-    ui->actionSeasonPasses->setChecked(view == 2);
-    ui->actionSeasonPassesButton->setChecked(view == 2);
+    ui->actionSearchResults->setChecked(view == 1);
+    ui->actionSearchResultsButton->setChecked(view == 1);
+    ui->actionPlaylist->setChecked(view == 2);
+    ui->actionPlaylistButton->setChecked(view == 2);
+    ui->actionSeasonPasses->setChecked(view == 3);
+    ui->actionSeasonPassesButton->setChecked(view == 3);
     ui->descriptionTextEdit->setPlainText(QString());
     m_currentProgramme.id = -1;
 
     if (m_currentView == 2) {
-        ui->addToSeasonPassPushButton->setText(trUtf8("&Poista sarjoista"));
-        ui->actionAddToSeasonPass->setText(trUtf8("&Poista sarjoista"));
+        ui->actionAddToPlaylist->setText(trUtf8("Poista &listasta"));
+        ui->addToPlaylistPushButton->setText(trUtf8("Poista &listasta"));
+    }
+    else {
+        ui->addToPlaylistPushButton->setText(trUtf8("&Listaan"));
+        ui->actionAddToPlaylist->setText(trUtf8("Lisää &listaan"));
+    }
+
+    if (m_currentView == 3) {
+        ui->addToSeasonPassPushButton->setText(trUtf8("Poista &sarjoista"));
+        ui->actionAddToSeasonPass->setText(trUtf8("Poista &sarjoista"));
     }
     else {
         ui->addToSeasonPassPushButton->setText(trUtf8("&Sarjoihin"));
-        ui->actionAddToSeasonPass->setText(trUtf8("&Lisää sarjoihin"));
+        ui->actionAddToSeasonPass->setText(trUtf8("Lisää &sarjoihin"));
     }
 
     QItemSelectionModel *selectionModel = ui->programmeTableView->selectionModel();
@@ -836,6 +877,9 @@ bool MainWindow::setCurrentView(int view)
         m_currentTableModel = m_searchResultsTableModel;
     }
     else if (view == 2) {
+        m_currentTableModel = m_playlistTableModel;
+    }
+    else if (view == 3) {
         m_currentTableModel = m_seasonPassesTableModel;
     }
     else {
@@ -886,13 +930,36 @@ void MainWindow::setFocusToChannelList()
     ui->channelListWidget->setFocus();
 }
 
-void MainWindow::addToSeasonPass()
+void MainWindow::setFocusToSearchField()
+{
+    m_searchComboBox->setFocus();
+    m_searchComboBox->lineEdit()->selectAll();
+}
+
+void MainWindow::addToPlaylist()
 {
     if (m_currentProgramme.id < 0) {
         return;
     }
 
     if (m_currentView == 2) {
+        m_client->sendPlaylistRemoveRequest(m_currentProgramme.id);
+    }
+    else {
+        m_client->sendPlaylistAddRequest(m_currentProgramme.id);
+    }
+
+    ui->addToPlaylistPushButton->setEnabled(false);
+    ui->actionAddToPlaylist->setEnabled(false);
+}
+
+void MainWindow::addToSeasonPass()
+{
+    if (m_currentProgramme.id < 0) {
+        return;
+    }
+
+    if (m_currentView == 3) {
         m_client->sendSeasonPassRemoveRequest(m_currentProgramme.seasonPassId);
     }
     else {
@@ -996,6 +1063,12 @@ void MainWindow::searchResultsFetched(const QList<Programme> &programmes)
     stopLoadingAnimation();
 }
 
+void MainWindow::playlistFetched(const QList<Programme> &programmes)
+{
+    updatePlaylist(programmes);
+    stopLoadingAnimation();
+}
+
 void MainWindow::seasonPassListFetched(const QList<Programme> &programmes)
 {
     updateSeasonPasses(programmes);
@@ -1012,7 +1085,11 @@ void MainWindow::seasonPassIndexFetched(const QMap<QString, int> &seasonPasses)
 {
     m_seasonPassesTableModel->setSeasonPasses(seasonPasses);
     m_cache->saveSeasonPasses(QDateTime::currentDateTime(), m_seasonPassesTableModel->programmes());
-    programmeSelectionChanged();
+
+    if (m_currentView == 3) {
+        programmeSelectionChanged();
+    }
+
     stopLoadingAnimation();
 }
 
@@ -1020,7 +1097,7 @@ void MainWindow::editRequestFinished(int type, bool ok)
 {
     if (type == 1) { /* Ohjelma lisätty listaan. */
         if (ok) {
-            fetchSeasonPasses(true);
+            fetchPlaylist(true);
             QMessageBox msgBox(this);
             msgBox.setWindowTitle(windowTitle());
             msgBox.setIcon(QMessageBox::Information);
@@ -1213,6 +1290,23 @@ void MainWindow::fetchSearchResults(const QString &phrase)
     setCurrentView(1);
 }
 
+void MainWindow::fetchPlaylist(bool refresh)
+{
+//    bool ok;
+//    int age;
+//    QList<Programme> programmes = m_cache->loadPlaylist(ok, age);
+//
+//    if (ok && !refresh) {
+//        updatePlaylist(programmes);
+//        return;
+//    }
+
+    if (m_client->isValidUsernameAndPassword()) {
+        m_client->sendPlaylistRequest();
+        startLoadingAnimation();
+    }
+}
+
 void MainWindow::fetchSeasonPasses(bool refresh)
 {
     bool ok;
@@ -1304,6 +1398,7 @@ void MainWindow::updateFontSize()
     ui->watchPushButton->setFont(font);
     ui->downloadPushButton->setFont(font);
     ui->screenshotsPushButton->setFont(font);
+    ui->addToPlaylistPushButton->setFont(font);
     ui->addToSeasonPassPushButton->setFont(font);
     m_formatComboBox->setFont(font);
     m_searchComboBox->setFont(font);
@@ -1416,7 +1511,10 @@ void MainWindow::updateWindowTitle()
         title = trUtf8("Hakutulokset: %2").arg(m_searchPhrase);
     }
     else if (m_currentView == 2) {
-        title = trUtf8("Sarjat");
+        title = trUtf8("Katselulista");
+    }
+    else if (m_currentView == 3) {
+        title = trUtf8("Suosikkisarjat");
     }
 
     ui->titleLabel->setText(title);
@@ -1460,17 +1558,38 @@ void MainWindow::updateCalendar()
     }
 }
 
-void MainWindow::updateSeasonPasses(const QList<Programme> &programmes)
+void MainWindow::updatePlaylist(const QList<Programme> &programmes)
 {
-    bool scroll = m_seasonPassesTableModel->programmeCount() == 0;
+    bool scroll = m_playlistTableModel->programmeCount() != programmes.size();
 
     if (programmes.isEmpty()) {
-        m_seasonPassesTableModel->setInfoText(trUtf8("Ei sarjoja"));
+        m_playlistTableModel->setInfoText(trUtf8("Ei ohjelmia katselulistalla"));
+    }
+    else {
+        m_playlistTableModel->setProgrammes(programmes);
+
+        if (m_currentView == 2) {
+            updateColumnSizes();
+
+            if (scroll) {
+                ui->programmeTableView->setFocus();
+                scrollProgrammes();
+            }
+        }
+    }
+}
+
+void MainWindow::updateSeasonPasses(const QList<Programme> &programmes)
+{
+    bool scroll = m_seasonPassesTableModel->programmeCount() != programmes.size();
+
+    if (programmes.isEmpty()) {
+        m_seasonPassesTableModel->setInfoText(trUtf8("Ei suosikkisarjoja"));
     }
     else {
         m_seasonPassesTableModel->setProgrammes(programmes);
 
-        if (m_currentView == 2) {
+        if (m_currentView == 3) {
             updateColumnSizes();
 
             if (scroll) {
@@ -1492,6 +1611,9 @@ void MainWindow::scrollProgrammes()
 {
     if (m_currentView != 0) {
         if (m_currentTableModel->programmeCount() == 0) {
+            ui->programmeTableView->selectionModel()->clear();
+            ui->descriptionTextEdit->setPlainText(QString());
+            m_currentProgramme.id = -1;
             return;
         }
 

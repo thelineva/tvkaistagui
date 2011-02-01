@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1028</width>
+    <width>1120</width>
     <height>600</height>
    </rect>
   </property>
@@ -130,9 +130,26 @@
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="addToSeasonPassPushButton">
+           <widget class="QPushButton" name="addToPlaylistPushButton">
+            <property name="toolTip">
+             <string>Lisää valitun ohjelman katselulistaan</string>
+            </property>
             <property name="text">
-             <string>Sarjoihin</string>
+             <string>&amp;Listaan</string>
+            </property>
+            <property name="icon">
+             <iconset resource="images.qrc">
+              <normaloff>:/images/playlist-16x16.png</normaloff>:/images/playlist-16x16.png</iconset>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="addToSeasonPassPushButton">
+            <property name="toolTip">
+             <string>Lisää valitun ohjelman suosikkisarjoihin</string>
+            </property>
+            <property name="text">
+             <string>&amp;Sarjoihin</string>
             </property>
             <property name="icon">
              <iconset resource="images.qrc">
@@ -220,7 +237,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1028</width>
+     <width>1120</width>
      <height>25</height>
     </rect>
    </property>
@@ -231,6 +248,8 @@
     <addaction name="actionWatch"/>
     <addaction name="actionDownload"/>
     <addaction name="actionScreenshots"/>
+    <addaction name="separator"/>
+    <addaction name="actionAddToPlaylist"/>
     <addaction name="actionAddToSeasonPass"/>
     <addaction name="separator"/>
     <addaction name="actionSettings"/>
@@ -244,6 +263,7 @@
     <addaction name="separator"/>
     <addaction name="actionProgrammeList"/>
     <addaction name="actionSearchResults"/>
+    <addaction name="actionPlaylist"/>
     <addaction name="actionSeasonPasses"/>
     <addaction name="separator"/>
     <addaction name="actionDownloads"/>
@@ -301,8 +321,9 @@
     <bool>false</bool>
    </attribute>
    <addaction name="actionProgrammeListButton"/>
-   <addaction name="actionSearchResultsButton"/>
+   <addaction name="actionPlaylistButton"/>
    <addaction name="actionSeasonPassesButton"/>
+   <addaction name="actionSearchResultsButton"/>
    <addaction name="separator"/>
    <addaction name="actionRefreshButton"/>
    <addaction name="separator"/>
@@ -778,7 +799,7 @@
     <string>&amp;Hakutulokset</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+F</string>
+    <string>Ctrl+2</string>
    </property>
   </action>
   <action name="actionDownloads">
@@ -811,7 +832,7 @@
     <string>Päivitä</string>
    </property>
    <property name="toolTip">
-    <string>Päivitä ohjelmatiedot</string>
+    <string>Päivitä näkymä</string>
    </property>
   </action>
   <action name="actionRefresh">
@@ -858,10 +879,6 @@
   <action name="actionSearchResultsButton">
    <property name="checkable">
     <bool>true</bool>
-   </property>
-   <property name="icon">
-    <iconset resource="images.qrc">
-     <normaloff>:/images/find-22x22.png</normaloff>:/images/find-22x22.png</iconset>
    </property>
    <property name="text">
     <string>Hakutulokset</string>
@@ -917,12 +934,11 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
-   <property name="icon">
-    <iconset resource="images.qrc">
-     <normaloff>:/images/list-22x22.png</normaloff>:/images/list-22x22.png</iconset>
-   </property>
    <property name="text">
     <string>Ohjelmatiedot</string>
+   </property>
+   <property name="toolTip">
+    <string>Näytä ohjelmatiedot</string>
    </property>
    <property name="iconVisibleInMenu">
     <bool>true</bool>
@@ -934,6 +950,9 @@
    </property>
    <property name="text">
     <string>&amp;Ohjelmatiedot</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+1</string>
    </property>
   </action>
   <action name="actionSortByTimeAsc">
@@ -972,15 +991,11 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
-   <property name="icon">
-    <iconset resource="images.qrc">
-     <normaloff>:/images/season-pass-22x22.png</normaloff>:/images/season-pass-22x22.png</iconset>
-   </property>
    <property name="text">
     <string>Sarjat</string>
    </property>
    <property name="toolTip">
-    <string>Näytä sarjat</string>
+    <string>Näytä suosikkisarjat</string>
    </property>
   </action>
   <action name="actionSeasonPasses">
@@ -989,6 +1004,9 @@
    </property>
    <property name="text">
     <string>S&amp;arjat</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+4</string>
    </property>
   </action>
   <action name="actionAddToSeasonPass">
@@ -1001,6 +1019,43 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+D</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>true</bool>
+   </property>
+  </action>
+  <action name="actionPlaylistButton">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Lista</string>
+   </property>
+   <property name="toolTip">
+    <string>Näytä katselulista</string>
+   </property>
+  </action>
+  <action name="actionPlaylist">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>L&amp;ista</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+3</string>
+   </property>
+  </action>
+  <action name="actionAddToPlaylist">
+   <property name="icon">
+    <iconset resource="images.qrc">
+     <normaloff>:/images/list-22x22.png</normaloff>:/images/list-22x22.png</iconset>
+   </property>
+   <property name="text">
+    <string>Lisää listaan</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
    </property>
    <property name="iconVisibleInMenu">
     <bool>true</bool>

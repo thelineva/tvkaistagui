@@ -73,6 +73,7 @@ private slots:
     void sortByTitleDesc();
     void showProgrammeList();
     void showSearchResults();
+    void showPlaylist();
     void showSeasonPasses();
     bool setCurrentView(int view);
     void toggleDownloadsDockWidget();
@@ -80,6 +81,8 @@ private slots:
     void selectChannel(int index);
     void setFocusToCalendar();
     void setFocusToChannelList();
+    void setFocusToSearchField();
+    void addToPlaylist();
     void addToSeasonPass();
     void setCurrentServer(int index);
     void channelsFetched(const QList<Channel> &channels);
@@ -87,6 +90,7 @@ private slots:
     void posterFetched(const Programme &programme, const QImage &poster);
     void streamUrlFetched(const Programme &programme, int format, const QUrl &url);
     void searchResultsFetched(const QList<Programme> &programmes);
+    void playlistFetched(const QList<Programme> &programmes);
     void seasonPassListFetched(const QList<Programme> &programmes);
     void seasonPassIndexFetched(const QMap<QString, int> &seasonPasses);
     void editRequestFinished(int type, bool ok);
@@ -100,6 +104,7 @@ private:
     void fetchChannels(bool refresh);
     void fetchProgrammes(int channelId, const QDate &date, bool refresh);
     void fetchSearchResults(const QString &phrase);
+    void fetchPlaylist(bool refresh);
     void fetchSeasonPasses(bool refresh);
     bool fetchPoster();
     void loadClientSettings();
@@ -110,6 +115,7 @@ private:
     void updateDescription();
     void updateWindowTitle();
     void updateCalendar();
+    void updatePlaylist(const QList<Programme> &programmes);
     void updateSeasonPasses(const QList<Programme> &programmes);
     void setFormat(int format);
     void scrollProgrammes();
@@ -134,6 +140,7 @@ private:
     DownloadTableModel *m_downloadTableModel;
     ProgrammeTableModel *m_programmeListTableModel;
     ProgrammeTableModel *m_searchResultsTableModel;
+    ProgrammeTableModel *m_playlistTableModel;
     ProgrammeTableModel *m_seasonPassesTableModel;
     ProgrammeTableModel *m_currentTableModel;
     Cache *m_cache;
