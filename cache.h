@@ -19,6 +19,8 @@ public:
     QList<Programme> loadProgrammes(int channelId, const QDate &date, bool &ok, int &age);
     bool saveProgrammes(int channelId, const QDate &date, const QDateTime &updateDateTime,
                         const QDateTime &expireDateTime, const QList<Programme> programmes);
+    QList<Programme> loadPlaylist(bool &ok, int &age);
+    bool savePlaylist(const QDateTime &updateDateTime, const QList<Programme> programmes);
     QList<Programme> loadSeasonPasses(bool &ok, int &age);
     bool saveSeasonPasses(const QDateTime &updateDateTime, const QList<Programme> programmes);
     QImage loadPoster(const Programme &programme);
@@ -27,6 +29,7 @@ public:
 private:
     QString buildChannelsXmlFilename() const;
     QString buildProgrammesXmlFilename(int channelId, const QDate &date) const;
+    QString buildPlaylistXmlFilename() const;
     QString buildSeasonPassesXmlFilename() const;
     QString buildPosterFilename(const Programme &programme) const;
     QList<Programme> readProgrammeFeed(QIODevice *device, int channelId, bool &ok, int &age);

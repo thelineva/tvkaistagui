@@ -141,6 +141,46 @@ bool Cache::saveProgrammes(int channelId, const QDate &date, const QDateTime &up
     return true;
 }
 
+QList<Programme> Cache::loadPlaylist(bool &ok, int &age)
+{
+    QList<Programme> programmes;
+    QString filename = buildPlaylistXmlFilename();
+    QFile file(filename);
+    age = INT_MAX;
+
+    if (!file.open(QIODevice::ReadOnly)) {
+        ok = false;
+        return programmes;
+    }
+
+    qDebug() << "READ" << filename;
+    programmes = readProgrammeFeed(&file, -1, ok, age);
+    file.close();
+    return programmes;
+}
+
+bool Cache::savePlaylist(const QDateTime &updateDateTime, QList<Programme>programmes)
+{
+    QString filename = buildPlaylistXmlFilename();
+    QDir dir(QFileInfo(filename).absolutePath());
+
+    if (!dir.exists()) {
+        dir.mkpath(dir.path());
+    }
+
+    qDebug() << "WRITE" << filename;
+    QFile file(filename);
+
+    if (!file.open(QIODevice::WriteOnly)) {
+        m_lastError = file.errorString();
+        return false;
+    }
+
+    writeProgrammeFeed(&file, updateDateTime, QDateTime(), programmes);
+    file.close();
+    return true;
+}
+
 QList<Programme> Cache::loadSeasonPasses(bool &ok, int &age)
 {
     QList<Programme> programmes;
@@ -224,6 +264,11 @@ QString Cache::buildProgrammesXmlFilename(int channelId, const QDate &date) cons
             date.toString("yyyy-MM")).arg(channelId).arg(date.toString("yyyy-MM-dd"));
 
     return m_dir.filePath(path);
+}
+
+QString Cache::buildPlaylistXmlFilename() const
+{
+    return m_dir.filePath("playlist.xml");
 }
 
 QString Cache::buildSeasonPassesXmlFilename() const
