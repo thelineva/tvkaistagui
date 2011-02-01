@@ -500,6 +500,7 @@ void TvkaistaClient::playlistRequestFinished()
 
     m_reply->deleteLater();
     m_reply = 0;
+    m_cache->savePlaylist(QDateTime::currentDateTime(), parser.programmes());
     emit playlistFetched(parser.programmes());
 }
 
