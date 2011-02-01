@@ -859,7 +859,7 @@ bool MainWindow::setCurrentView(int view)
     }
     else {
         ui->addToPlaylistPushButton->setText(trUtf8("&Listaan"));
-        ui->actionAddToPlaylist->setText(trUtf8("Lisää &listaan"));
+        ui->actionAddToPlaylist->setText(trUtf8("Lisää l&istaan"));
     }
 
     if (m_currentView == 3) {

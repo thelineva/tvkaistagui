@@ -909,7 +909,7 @@
   </action>
   <action name="actionShortcuts">
    <property name="text">
-    <string>&amp;Pikanäppäimet</string>
+    <string>Pika&amp;näppäimet</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+M</string>
@@ -921,7 +921,7 @@
      <normaloff>:/images/image-16x16.png</normaloff>:/images/image-16x16.png</iconset>
    </property>
    <property name="text">
-    <string>Kuvakaappaukset</string>
+    <string>K&amp;uvakaappaukset</string>
    </property>
    <property name="shortcut">
     <string>F11</string>
@@ -1015,7 +1015,7 @@
      <normaloff>:/images/season-pass-16x16.png</normaloff>:/images/season-pass-16x16.png</iconset>
    </property>
    <property name="text">
-    <string>Lisää sarjoihin</string>
+    <string>Lisää &amp;sarjoihin</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+D</string>
@@ -1052,7 +1052,7 @@
      <normaloff>:/images/list-22x22.png</normaloff>:/images/list-22x22.png</iconset>
    </property>
    <property name="text">
-    <string>Lisää listaan</string>
+    <string>Lisää l&amp;istaan</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
