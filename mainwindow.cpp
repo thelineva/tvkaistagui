@@ -208,6 +208,16 @@ MainWindow::MainWindow(QWidget *parent) :
     addAction(action);
 
     action = new QAction(this);
+    action->setShortcut(Qt::CTRL | Qt::Key_Left);
+    connect(action, SIGNAL(triggered()), SLOT(goToPreviousDay()));
+    addAction(action);
+
+    action = new QAction(this);
+    action->setShortcut(Qt::CTRL | Qt::Key_Right);
+    connect(action, SIGNAL(triggered()), SLOT(goToNextDay()));
+    addAction(action);
+
+    action = new QAction(this);
     action->setShortcutContext(Qt::WidgetShortcut);
     action->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_Delete));
     connect(action, SIGNAL(triggered()), SLOT(clearSearchHistory()));
