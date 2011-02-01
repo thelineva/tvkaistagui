@@ -43,6 +43,9 @@ public:
     void sendPosterRequest(const Programme &programme);
     void sendStreamRequest(const Programme &programme);
     void sendSearchRequest(const QString &phrase);
+    void sendPlaylistRequest();
+    void sendPlaylistAddRequest(int programmeId);
+    void sendPlaylistRemoveRequest(int programmeId);
     void sendSeasonPassListRequest();
     void sendSeasonPassIndexRequest();
     void sendSeasonPassAddRequest(int programmeId);
@@ -59,10 +62,10 @@ signals:
     void posterFetched(const Programme &programme, const QImage &poster);
     void streamUrlFetched(const Programme &programme, int format, const QUrl &url);
     void searchResultsFetched(const QList<Programme> &programmes);
+    void playlistFetched(const QList<Programme> &programmes);
     void seasonPassListFetched(const QList<Programme> &programmes);
     void seasonPassIndexFetched(const QMap<QString, int> &seasonPasses);
-    void addedToSeasonPass(bool ok);
-    void removedFromSeasonPass(bool ok);
+    void editRequestFinished(int type, bool ok);
     void streamNotFound();
     void loginError();
     void networkError();
@@ -76,6 +79,9 @@ private slots:
     void posterRequestFinished();
     void streamRequestFinished();
     void searchRequestFinished();
+    void playlistRequestFinished();
+    void playlistAddRequestFinished();
+    void playlistRemoveRequestFinished();
     void seasonPassListRequestFinished();
     void seasonPassIndexRequestFinished();
     void seasonPassAddRequestFinished();
