@@ -1292,14 +1292,14 @@ void MainWindow::fetchSearchResults(const QString &phrase)
 
 void MainWindow::fetchPlaylist(bool refresh)
 {
-//    bool ok;
-//    int age;
-//    QList<Programme> programmes = m_cache->loadPlaylist(ok, age);
-//
-//    if (ok && !refresh) {
-//        updatePlaylist(programmes);
-//        return;
-//    }
+    bool ok;
+    int age;
+    QList<Programme> programmes = m_cache->loadPlaylist(ok, age);
+
+    if (ok && !refresh) {
+        updatePlaylist(programmes);
+        return;
+    }
 
     if (m_client->isValidUsernameAndPassword()) {
         m_client->sendPlaylistRequest();
