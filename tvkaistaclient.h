@@ -51,7 +51,7 @@ public:
     void sendSeasonPassAddRequest(int programmeId);
     void sendSeasonPassRemoveRequest(int seasonPassId);
     QNetworkReply* sendDetailedFeedRequest(const Programme &programme);
-    QNetworkReply* sendRequest(const QUrl &url);
+    QNetworkReply* sendRequest(const QNetworkRequest &request);
     QNetworkReply* sendRequestWithAuthHeader(const QUrl &url);
     static QString networkErrorString(QNetworkReply::NetworkError error);
 

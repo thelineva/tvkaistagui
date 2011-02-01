@@ -49,6 +49,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->downloadsTableView->addAction(ui->actionPlayFile);
     ui->downloadsTableView->addAction(ui->actionOpenDirectory);
     ui->downloadsTableView->addAction(ui->actionAbortDownload);
+    ui->downloadsTableView->addAction(ui->actionResumeDownload);
     ui->downloadsTableView->addAction(ui->actionRemoveDownload);
     ui->downloadsTableView->setContextMenuPolicy(Qt::ActionsContextMenu);
     ui->downloadsTableView->setItemDelegateForColumn(0, new DownloadDelegate(this));
@@ -171,6 +172,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionAbout, SIGNAL(triggered()), SLOT(openAboutDialog()));
     connect(ui->actionAbortDownload, SIGNAL(triggered()), SLOT(abortDownload()));
     connect(ui->abortDownloadToolButton, SIGNAL(clicked()), SLOT(abortDownload()));
+    connect(ui->actionResumeDownload, SIGNAL(triggered()), SLOT(resumeDownload()));
     connect(ui->actionRemoveDownload, SIGNAL(triggered()), SLOT(removeDownload()));
     connect(ui->removeDownloadToolButton, SIGNAL(clicked()), SLOT(removeDownload()));
     connect(ui->actionRefreshChannels, SIGNAL(triggered()), SLOT(refreshChannels()));
@@ -468,6 +470,7 @@ void MainWindow::downloadSelectionChanged()
     QModelIndexList indexes = ui->downloadsTableView->selectionModel()->selectedRows(0);
     bool playEnabled = false;
     bool abortEnabled = false;
+    bool resumeEnabled = false;
     bool removeEnabled = false;
 
     if (!indexes.isEmpty()) {
@@ -475,8 +478,13 @@ void MainWindow::downloadSelectionChanged()
         removeEnabled = true;
 
         for (int i = 0; i < indexes.size(); i++) {
-            if (m_downloadTableModel->status(indexes.at(i).row()) == 0) {
+            int status = m_downloadTableModel->status(indexes.at(i).row());
+
+            if (status == 0) {
                 abortEnabled = true;
+            }
+            else if ((status == 2 || status == 3) && indexes.size() == 1) {
+                resumeEnabled = m_downloadTableModel->programmeId(indexes.at(i).row()) >= 0;
             }
         }
     }
@@ -484,6 +492,7 @@ void MainWindow::downloadSelectionChanged()
     ui->actionPlayFile->setEnabled(playEnabled);
     ui->playFilePushButton->setEnabled(playEnabled);
     ui->actionAbortDownload->setEnabled(abortEnabled);
+    ui->actionResumeDownload->setEnabled(resumeEnabled);
     ui->abortDownloadToolButton->setEnabled(abortEnabled);
     ui->actionRemoveDownload->setEnabled(removeEnabled);
     ui->removeDownloadToolButton->setEnabled(removeEnabled);
@@ -684,6 +693,27 @@ void MainWindow::abortDownload()
 
     ui->downloadsTableView->resizeRowsToContents();
     downloadSelectionChanged();
+}
+
+void MainWindow::resumeDownload()
+{
+    QModelIndexList indexes = ui->downloadsTableView->selectionModel()->selectedRows(0);
+    int row = indexes.first().row();
+    int status = m_downloadTableModel->status(row);
+
+    if (status != 2 && status != 3) {
+        return;
+    }
+
+    int programmeId = m_downloadTableModel->programmeId(row);
+    int currentFormat = m_client->format();
+    Programme programme;
+    programme.id = programmeId;
+    m_downloading = true;
+    m_client->setFormat(m_downloadTableModel->videoFormat(row));
+    m_client->sendStreamRequest(programme);
+    m_client->setFormat(currentFormat);
+    startLoadingAnimation();
 }
 
 void MainWindow::removeDownload()
@@ -1132,6 +1162,7 @@ void MainWindow::streamUrlFetched(const Programme &programme, int format, const 
         ui->downloadsTableView->resizeColumnToContents(0);
         ui->downloadsTableView->resizeRowsToContents();
         ui->downloadsTableView->scrollTo(m_downloadTableModel->index(row, 0, QModelIndex()));
+        downloadSelectionChanged();
     }
     else {
         m_settings.beginGroup("mediaPlayer");

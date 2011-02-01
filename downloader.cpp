@@ -7,7 +7,7 @@
 #include "tvkaistaclient.h"
 
 Downloader::Downloader(TvkaistaClient *client, QObject *parent) :
-    QObject(parent), m_client(client), m_reply(0),
+    QObject(parent), m_client(client), m_reply(0), m_byteOffset(0),
     m_bytesReceived(0), m_bytesTotal(-1), m_finished(false)
 {
     m_buf = new char[4096];
@@ -21,7 +21,14 @@ Downloader::~Downloader()
 void Downloader::start(const QUrl &url)
 {
     abort();
-    m_reply = m_client->sendRequest(url);
+    QNetworkRequest request(url);
+
+    if (m_byteOffset > 0) {
+        qDebug() << "Range" << m_byteOffset;
+        request.setRawHeader("Range", QString("bytes=%1-").arg(m_byteOffset).toAscii());
+    }
+
+    m_reply = m_client->sendRequest(request);
     connect(m_reply, SIGNAL(readyRead()), SLOT(replyReadyRead()));
     connect(m_reply, SIGNAL(finished()), SLOT(replyFinished()));
     connect(m_reply, SIGNAL(downloadProgress(qint64,qint64)), SLOT(replyDownloadProgress(qint64,qint64)));
@@ -84,6 +91,16 @@ bool Downloader::isFilenameFromReply() const
     return m_filenameFromReply;
 }
 
+void Downloader::setByteOffset(int byteOffset)
+{
+    m_byteOffset = byteOffset;
+}
+
+int Downloader::byteOffset() const
+{
+    return m_byteOffset;
+}
+
 void Downloader::replyReadyRead()
 {
     if (!m_file.isOpen()) {
@@ -94,14 +111,26 @@ void Downloader::replyReadyRead()
             m_filename = QFileInfo(QFileInfo(m_filename).dir(), dispositionHeader.mid(17)).filePath();
         }
 
-        appendSuffixToFilenameAndCreateDir();
-        qDebug() << "WRITE" << m_filename;
-        m_file.setFileName(m_filename);
+        if (m_byteOffset == 0) {
+            appendSuffixToFilenameAndCreateDir();
+            qDebug() << "WRITE" << m_filename;
+            m_file.setFileName(m_filename);
 
-        if (!m_file.open(QIODevice::WriteOnly)) {
-            m_error = m_file.errorString();
-            abort();
-            return;
+            if (!m_file.open(QIODevice::WriteOnly)) {
+                m_error = m_file.errorString();
+                abort();
+                return;
+            }
+        }
+        else {
+            qDebug() << "APPEND" << m_filename;
+            m_file.setFileName(m_filename);
+
+            if (!m_file.open(QIODevice::WriteOnly | QIODevice::Append)) {
+                m_error = m_file.errorString();
+                abort();
+                return;
+            }
         }
     }
 
@@ -127,7 +156,7 @@ void Downloader::replyFinished()
 
 void Downloader::replyDownloadProgress(qint64 bytesReceived, qint64 bytesTotal)
 {
-    m_bytesReceived = bytesReceived;
+    m_bytesReceived = m_byteOffset + bytesReceived;
     m_bytesTotal = bytesTotal;
 }
 

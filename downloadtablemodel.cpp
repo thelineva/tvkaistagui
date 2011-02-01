@@ -99,6 +99,12 @@ TvkaistaClient* DownloadTableModel::client() const
 
 int DownloadTableModel::download(const Programme &programme, int format, const QString &channelName, const QUrl &url)
 {
+    int index = tryResumeDownload(programme.id, url);
+
+    if (index >= 0) {
+        return index;
+    }
+
     m_settings->beginGroup("downloads");
     QString dirPath = m_settings->value("directory").toString();
     QString filenameFormat = m_settings->value("filenameFormat").toString();
@@ -143,10 +149,11 @@ int DownloadTableModel::download(const Programme &programme, int format, const Q
     connect(downloader, SIGNAL(networkError()), SLOT(networkError()));
 
     FileDownload download;
-    int index = m_downloads.size();
+    index = m_downloads.size();
     beginInsertRows(QModelIndex(), index, index);
     download.title = programme.title;
     download.dateTime = programme.startDateTime;
+    download.programmeId = programme.id;
     download.status = 0;
     download.description = trUtf8("Ladataan");
     download.format = MainWindow::videoFormats().value(format);
@@ -240,6 +247,11 @@ int DownloadTableModel::videoFormat(int index) const
     return formats.indexOf(format);
 }
 
+int DownloadTableModel::programmeId(int index) const
+{
+    return m_downloads.at(index).programmeId;
+}
+
 bool DownloadTableModel::load()
 {
     m_downloads.clear();
@@ -280,6 +292,10 @@ bool DownloadTableModel::load()
         else if (download.status == 1) {
             download.description = trUtf8("Valmis");
         }
+
+        bool intOk;
+        int programmeId = attrs.value("programmeId").toString().toInt(&intOk);
+        download.programmeId = intOk ? programmeId : -1;
 
         while (reader.readNextStartElement()) {
             if (reader.name() == "title") {
@@ -323,6 +339,7 @@ bool DownloadTableModel::save()
         writer.writeAttribute("dateTime", download.dateTime.toString("yyyy-MM-dd'T'hh:mm:ss"));
         writer.writeAttribute("channel", download.channelName);
         writer.writeAttribute("format", download.format);
+        writer.writeAttribute("programmeId", QString::number(download.programmeId));
         writer.writeTextElement("title", download.title);
         writer.writeTextElement("filename", download.filename);
         writer.writeEndElement(); // programme
@@ -407,10 +424,43 @@ void DownloadTableModel::networkError()
             download.description = download.downloader->lastError();
             download.status = 3;
             m_downloads.replace(i, download);
-            QModelIndex modelIndex = index(i, 2, QModelIndex());
+            QModelIndex modelIndex = index(i, 0, QModelIndex());
             emit dataChanged(modelIndex, modelIndex);
         }
     }
+}
+
+int DownloadTableModel::tryResumeDownload(int programmeId, const QUrl &url)
+{
+    int count = m_downloads.size();
+
+    for (int i = 0; i < count; i++) {
+        FileDownload download = m_downloads.at(i);
+
+        if (download.programmeId == programmeId) {
+            Downloader *downloader = new Downloader(m_client, this);
+            downloader->setFilename(download.filename);
+            downloader->setFilenameFromReply(false);
+            downloader->setByteOffset(QFileInfo(download.filename).size());
+            downloader->start(url);
+            connect(downloader, SIGNAL(finished()), SLOT(downloaderFinished()));
+            connect(downloader, SIGNAL(networkError()), SLOT(networkError()));
+            download.downloader = downloader;
+            download.status = 0;
+            download.description = trUtf8("Ladataan");
+            m_downloads.replace(i, download);
+            QModelIndex modelIndex = index(i, 0, QModelIndex());
+            emit dataChanged(modelIndex, modelIndex);
+
+            if (!m_timer->isActive()) {
+                m_timer->start(1000);
+            }
+
+            return i;
+        }
+    }
+
+    return -1;
 }
 
 QString DownloadTableModel::formatBytes(qint64 bytes) const

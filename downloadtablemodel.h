@@ -19,6 +19,7 @@ struct FileDownload
     QString filename;
     QString format;
     QString channelName;
+    int programmeId;
     int status;
     Downloader *downloader;
 };
@@ -44,6 +45,7 @@ public:
     QString filename(int index) const;
     int status(int index) const;
     int videoFormat(int index) const;
+    int programmeId(int index) const;
     bool load();
     bool save();
 
@@ -56,6 +58,7 @@ private slots:
     void networkError();
 
 private:
+    int tryResumeDownload(int programmeId, const QUrl &url);
     QString formatBytes(qint64 bytes) const;
     QString toAscii(const QString &s);
     QString removeInvalidCharacters(const QString &s);

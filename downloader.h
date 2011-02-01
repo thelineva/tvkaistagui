@@ -25,6 +25,8 @@ public:
     QString filename() const;
     void setFilenameFromReply(bool filenameFromReply);
     bool isFilenameFromReply() const;
+    void setByteOffset(int byteOffset);
+    int byteOffset() const;
 
 signals:
     void finished();
@@ -46,6 +48,7 @@ private:
     QString m_error;
     QString m_filename;
     bool m_filenameFromReply;
+    qint64 m_byteOffset;
     qint64 m_bytesReceived;
     qint64 m_bytesTotal;
     bool m_finished;

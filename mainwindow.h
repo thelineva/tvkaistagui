@@ -61,6 +61,7 @@ private slots:
     void openAboutDialog();
     void openHelp();
     void abortDownload();
+    void resumeDownload();
     void removeDownload();
     void refreshChannels();
     void playDownloadedFile();

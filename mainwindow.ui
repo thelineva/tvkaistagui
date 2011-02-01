@@ -1068,10 +1068,12 @@
   </action>
   <action name="actionCopyItunesFeedUrl">
    <property name="text">
-    <string>Kopioi iTunes-syötteen osoite</string>
-   </property>
-   <property name="toolTip">
     <string>Kopioi i&amp;Tunes-syötteen osoite</string>
+   </property>
+  </action>
+  <action name="actionResumeDownload">
+   <property name="text">
+    <string>&amp;Jatka lataamista</string>
    </property>
   </action>
  </widget>

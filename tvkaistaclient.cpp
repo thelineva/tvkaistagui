@@ -193,11 +193,10 @@ QNetworkReply* TvkaistaClient::sendDetailedFeedRequest(const Programme &programm
     return m_networkAccessManager->get(request);
 }
 
-QNetworkReply* TvkaistaClient::sendRequest(const QUrl &url)
+QNetworkReply* TvkaistaClient::sendRequest(const QNetworkRequest &request)
 {
     setServerCookie();
-    qDebug() << "GET" << url.toString();
-    QNetworkRequest request(url);
+    qDebug() << "GET" << request.url().toString();
     return m_networkAccessManager->get(request);
 }
 
