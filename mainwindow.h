@@ -40,6 +40,7 @@ public:
 
 protected:
     void closeEvent(QCloseEvent *e);
+    bool eventFilter(QObject *object, QEvent *event);
 
 private slots:
     void dateClicked(const QDate &date);
@@ -122,6 +123,7 @@ private:
     void updateCalendar();
     void updatePlaylist(const QList<Programme> &programmes);
     void updateSeasonPasses(const QList<Programme> &programmes);
+    void resumeDownloadAt(int row);
     void setFormat(int format);
     void scrollProgrammes();
     void startLoadingAnimation();

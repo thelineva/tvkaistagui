@@ -53,6 +53,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->downloadsTableView->addAction(ui->actionRemoveDownload);
     ui->downloadsTableView->setContextMenuPolicy(Qt::ActionsContextMenu);
     ui->downloadsTableView->setItemDelegateForColumn(0, new DownloadDelegate(this));
+    ui->downloadsTableView->viewport()->installEventFilter(this);
     ui->programmeTableView->setModel(m_programmeListTableModel);
     ui->channelListWidget->addAction(ui->actionRefreshChannels);
     ui->channelListWidget->setContextMenuPolicy(Qt::ActionsContextMenu);
@@ -406,6 +407,21 @@ void MainWindow::closeEvent(QCloseEvent *e)
     m_downloadTableModel->save();
 }
 
+bool MainWindow::eventFilter(QObject *object, QEvent *event)
+{
+    QWidget *viewport = ui->downloadsTableView->viewport();
+
+    if (object == viewport && event->type() == QEvent::MouseButtonPress) {
+        QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(event);
+
+        if (mouseEvent->x() >= viewport->width() - 30) {
+            resumeDownloadAt(ui->downloadsTableView->rowAt(mouseEvent->y()));
+        }
+    }
+
+    return QMainWindow::eventFilter(object, event);
+}
+
 void MainWindow::dateClicked(const QDate &date)
 {
     fetchProgrammes(m_currentChannelId, date, false);
@@ -701,22 +717,10 @@ void MainWindow::abortDownload()
 void MainWindow::resumeDownload()
 {
     QModelIndexList indexes = ui->downloadsTableView->selectionModel()->selectedRows(0);
-    int row = indexes.first().row();
-    int status = m_downloadTableModel->status(row);
 
-    if (status != 2 && status != 3) {
-        return;
+    if (indexes.size() == 1) {
+        resumeDownloadAt(indexes.first().row());
     }
-
-    int programmeId = m_downloadTableModel->programmeId(row);
-    int currentFormat = m_client->format();
-    Programme programme;
-    programme.id = programmeId;
-    m_downloading = true;
-    m_client->setFormat(m_downloadTableModel->videoFormat(row));
-    m_client->sendStreamRequest(programme);
-    m_client->setFormat(currentFormat);
-    startLoadingAnimation();
 }
 
 void MainWindow::removeDownload()
@@ -1713,6 +1717,29 @@ void MainWindow::updateSeasonPasses(const QList<Programme> &programmes)
             }
         }
     }
+}
+
+void MainWindow::resumeDownloadAt(int row)
+{
+    if (row < 0) {
+        return;
+    }
+
+    int status = m_downloadTableModel->status(row);
+    int programmeId = m_downloadTableModel->programmeId(row);
+
+    if ((status != 2 && status != 3) || programmeId < 0) {
+        return;
+    }
+
+    int currentFormat = m_client->format();
+    Programme programme;
+    programme.id = programmeId;
+    m_downloading = true;
+    m_client->setFormat(m_downloadTableModel->videoFormat(row));
+    m_client->sendStreamRequest(programme);
+    m_client->setFormat(currentFormat);
+    startLoadingAnimation();
 }
 
 void MainWindow::setFormat(int format)
