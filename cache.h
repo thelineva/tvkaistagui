@@ -21,8 +21,10 @@ public:
                         const QDateTime &expireDateTime, const QList<Programme> programmes);
     QList<Programme> loadPlaylist(bool &ok, int &age);
     bool savePlaylist(const QDateTime &updateDateTime, const QList<Programme> programmes);
+    bool removePlaylist();
     QList<Programme> loadSeasonPasses(bool &ok, int &age);
     bool saveSeasonPasses(const QDateTime &updateDateTime, const QList<Programme> programmes);
+    bool removeSeasonPasses();
     QImage loadPoster(const Programme &programme);
     bool savePoster(const Programme &programme, const QByteArray &data);
 

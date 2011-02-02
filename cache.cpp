@@ -181,6 +181,13 @@ bool Cache::savePlaylist(const QDateTime &updateDateTime, QList<Programme>progra
     return true;
 }
 
+bool Cache::removePlaylist()
+{
+    QString filename = buildPlaylistXmlFilename();
+    qDebug() << "REMOVE" << filename;
+    return QFile(filename).remove();
+}
+
 QList<Programme> Cache::loadSeasonPasses(bool &ok, int &age)
 {
     QList<Programme> programmes;
@@ -219,6 +226,13 @@ bool Cache::saveSeasonPasses(const QDateTime &updateDateTime, QList<Programme>pr
     writeProgrammeFeed(&file, updateDateTime, QDateTime(), programmes);
     file.close();
     return true;
+}
+
+bool Cache::removeSeasonPasses()
+{
+    QString filename = buildSeasonPassesXmlFilename();
+    qDebug() << "REMOVE" << filename;
+    return QFile(filename).remove();
 }
 
 QImage Cache::loadPoster(const Programme &programme)
