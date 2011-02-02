@@ -75,7 +75,7 @@ QVariant ProgrammeTableModel::data(const QModelIndex &index, int role) const
     else if (role == Qt::ForegroundRole) {
         Programme programme = m_programmes.value(row);
 
-        if ((programme.flags & m_flagMask) > 0) {
+        if ((programme.flags & m_flagMask) > 0 || m_removedRows.contains(row)) {
             return Qt::darkGray;
         }
     }
@@ -236,6 +236,36 @@ void ProgrammeTableModel::setSeasonPasses(const QMap<QString, int> &seasonPasses
     }
 }
 
+void ProgrammeTableModel::setRemovedByProgrammeId(int programmeId)
+{
+    int count = m_programmes.size();
+    int lastColumn = columnCount(QModelIndex()) - 1;
+
+    for (int i = 0; i < count; i++) {
+        Programme programme = m_programmes.at(i);
+
+        if (programme.id == programmeId) {
+            m_removedRows.insert(i);
+            emit dataChanged(index(i, 0, QModelIndex()), index(i, lastColumn, QModelIndex()));
+        }
+    }
+}
+
+void ProgrammeTableModel::setRemovedBySeasonPassId(int seasonPassId)
+{
+    int count = m_programmes.size();
+    int lastColumn = columnCount(QModelIndex()) - 1;
+
+    for (int i = 0; i < count; i++) {
+        Programme programme = m_programmes.at(i);
+
+        if (programme.seasonPassId == seasonPassId) {
+            m_removedRows.insert(i);
+            emit dataChanged(index(i, 0, QModelIndex()), index(i, lastColumn, QModelIndex()));
+        }
+    }
+}
+
 int ProgrammeTableModel::programmeCount() const
 {
     return m_programmes.size();
@@ -243,6 +273,8 @@ int ProgrammeTableModel::programmeCount() const
 
 void ProgrammeTableModel::setInfoText(const QString &text)
 {
+    m_removedRows.clear();
+
     if (text.isEmpty() && !m_infoText.isEmpty()) { /* Jos teksti poistettu */
         beginRemoveRows(QModelIndex(), 0, 0);
         m_infoText = text;

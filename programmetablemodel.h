@@ -2,6 +2,7 @@
 #define PROGRAMMETABLEMODEL_H
 
 #include <QAbstractTableModel>
+#include <QSet>
 #include "programme.h"
 
 class ProgrammeTableModel : public QAbstractTableModel
@@ -22,6 +23,8 @@ public:
     void setProgrammes(const QList<Programme> &programmes);
     QList<Programme> programmes() const;
     void setSeasonPasses(const QMap<QString, int> &seasonPasses);
+    void setRemovedByProgrammeId(int programmeId);
+    void setRemovedBySeasonPassId(int seasonPassId);
     int programmeCount() const;
     void setInfoText(const QString &text);
     QString infoText() const;
@@ -30,6 +33,7 @@ public:
 
 private:
     QList<Programme> m_programmes;
+    QSet<int> m_removedRows;
     QString m_infoText;
     bool m_detailsVisible;
     int m_format;
