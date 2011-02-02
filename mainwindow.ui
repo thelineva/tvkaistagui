@@ -261,7 +261,7 @@
     </property>
     <widget class="QMenu" name="menuSort">
      <property name="title">
-      <string>Järjestä</string>
+      <string>La&amp;jittele</string>
      </property>
      <addaction name="actionSortByTimeAsc"/>
      <addaction name="actionSortByTimeDesc"/>
