@@ -21,6 +21,7 @@ void DownloadDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
 
     if ((option.state & QStyle::State_Selected) > 0) {
         painter->fillRect(option.rect, option.palette.highlight());
+        painter->setPen(QPen(option.palette.highlightedText(), 1.0));
     }
 
     painter->translate(option.rect.x() + PADDING, option.rect.y() + PADDING);
