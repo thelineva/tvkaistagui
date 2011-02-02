@@ -1246,7 +1246,7 @@ void MainWindow::editRequestFinished(int type, bool ok)
     }
     else if (type == 2) { /* Ohjelma poistettu listasta. */
         if (ok) {
-            fetchSeasonPasses(true);
+            fetchPlaylist(true);
             QMessageBox msgBox(this);
             msgBox.setWindowTitle(windowTitle());
             msgBox.setIcon(QMessageBox::Information);
