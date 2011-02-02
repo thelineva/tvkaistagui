@@ -132,6 +132,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->programmeTableView, SIGNAL(customContextMenuRequested(QPoint)), SLOT(programmeMenuRequested(QPoint)));
     connect(ui->actionCopyMiroFeedUrl, SIGNAL(triggered()), SLOT(copyMiroFeedUrl()));
     connect(ui->actionCopyItunesFeedUrl, SIGNAL(triggered()), SLOT(copyItunesFeedUrl()));
+    connect(ui->menuView, SIGNAL(aboutToShow()), SLOT(viewMenuAboutToShow()));
     connect(ui->actionSortByTimeAsc, SIGNAL(triggered()), SLOT(sortByTimeAsc()));
     connect(ui->actionSortByTimeDesc, SIGNAL(triggered()), SLOT(sortByTimeDesc()));
     connect(ui->actionSortByTitleAsc, SIGNAL(triggered()), SLOT(sortByTitleAsc()));
@@ -503,6 +504,17 @@ void MainWindow::formatChanged()
     setFormat(m_formatComboBox->currentIndex());
 }
 
+void MainWindow::viewMenuAboutToShow()
+{
+    ui->menuSort->setEnabled(m_currentView != 0);
+    int sortKey = m_currentTableModel->sortKey();
+    bool descending = m_currentTableModel->isDescending();
+    ui->actionSortByTimeAsc->setChecked(sortKey == 1 && !descending);
+    ui->actionSortByTimeDesc->setChecked(sortKey == 1 && descending);
+    ui->actionSortByTitleAsc->setChecked(sortKey == 2 && !descending);
+    ui->actionSortByTitleDesc->setChecked(sortKey == 2 && descending);
+}
+
 void MainWindow::programmeMenuRequested(const QPoint &point)
 {
     QMenu menu(this);
@@ -521,18 +533,8 @@ void MainWindow::programmeMenuRequested(const QPoint &point)
     }
 
     if (m_currentView != 0) {
-        int sortKey = m_currentTableModel->sortKey();
-        bool descending = m_currentTableModel->isDescending();
-        ui->actionSortByTimeAsc->setChecked(sortKey == 1 && !descending);
-        ui->actionSortByTimeDesc->setChecked(sortKey == 1 && descending);
-        ui->actionSortByTitleAsc->setChecked(sortKey == 2 && !descending);
-        ui->actionSortByTitleDesc->setChecked(sortKey == 2 && descending);
-
-        QMenu *sortMenu = menu.addMenu(trUtf8("Järjestä"));
-        sortMenu->addAction(ui->actionSortByTimeAsc);
-        sortMenu->addAction(ui->actionSortByTimeDesc);
-        sortMenu->addAction(ui->actionSortByTitleAsc);
-        sortMenu->addAction(ui->actionSortByTitleDesc);
+        viewMenuAboutToShow();
+        menu.addMenu(ui->menuSort);
     }
 
     menu.exec(ui->programmeTableView->mapToGlobal(point));

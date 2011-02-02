@@ -48,6 +48,7 @@ private slots:
     void programmeSelectionChanged();
     void downloadSelectionChanged();
     void formatChanged();
+    void viewMenuAboutToShow();
     void programmeMenuRequested(const QPoint &point);
     void refreshProgrammes();
     void goToCurrentDay();

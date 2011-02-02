@@ -259,7 +259,17 @@
     <property name="title">
      <string>&amp;Näytä</string>
     </property>
+    <widget class="QMenu" name="menuSort">
+     <property name="title">
+      <string>Järjestä</string>
+     </property>
+     <addaction name="actionSortByTimeAsc"/>
+     <addaction name="actionSortByTimeDesc"/>
+     <addaction name="actionSortByTitleAsc"/>
+     <addaction name="actionSortByTitleDesc"/>
+    </widget>
     <addaction name="actionRefresh"/>
+    <addaction name="menuSort"/>
     <addaction name="separator"/>
     <addaction name="actionProgrammeList"/>
     <addaction name="actionSearchResults"/>
