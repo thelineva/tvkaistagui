@@ -990,6 +990,7 @@ void MainWindow::addToPlaylist()
 
     if (m_currentView == 2) {
         m_client->sendPlaylistRemoveRequest(m_currentProgramme.id);
+        m_playlistTableModel->setRemovedByProgrammeId(m_currentProgramme.id);
     }
     else {
         m_client->sendPlaylistAddRequest(m_currentProgramme.id);
@@ -997,6 +998,7 @@ void MainWindow::addToPlaylist()
 
     ui->addToPlaylistPushButton->setEnabled(false);
     ui->actionAddToPlaylist->setEnabled(false);
+    m_cache->removePlaylist();
     startLoadingAnimation();
 }
 
@@ -1008,6 +1010,7 @@ void MainWindow::addToSeasonPass()
 
     if (m_currentView == 3) {
         m_client->sendSeasonPassRemoveRequest(m_currentProgramme.seasonPassId);
+        m_seasonPassesTableModel->setRemovedBySeasonPassId(m_currentProgramme.seasonPassId);
     }
     else {
         m_client->sendSeasonPassAddRequest(m_currentProgramme.id);
@@ -1015,6 +1018,7 @@ void MainWindow::addToSeasonPass()
 
     ui->addToSeasonPassPushButton->setEnabled(false);
     ui->actionAddToSeasonPass->setEnabled(false);
+    m_cache->removeSeasonPasses();
     startLoadingAnimation();
 }
 
@@ -1226,85 +1230,56 @@ void MainWindow::seasonPassIndexFetched(const QMap<QString, int> &seasonPasses)
 
 void MainWindow::editRequestFinished(int type, bool ok)
 {
+    QString text;
+
     if (type == 1) { /* Ohjelma lisätty listaan. */
         if (ok) {
             fetchPlaylist(true);
-            QMessageBox msgBox(this);
-            msgBox.setWindowTitle(windowTitle());
-            msgBox.setIcon(QMessageBox::Information);
-            msgBox.setText(trUtf8("Ohjelma on lisätty listaan."));
-            msgBox.setStandardButtons(QMessageBox::Ok);
-            msgBox.exec();
+            text = trUtf8("Ohjelma on lisätty katselulistaan.");
         }
         else {
             stopLoadingAnimation();
-            QMessageBox msgBox(this);
-            msgBox.setWindowTitle(windowTitle());
-            msgBox.setIcon(QMessageBox::Information);
-            msgBox.setText(trUtf8("Ohjelma on jo aiemmin lisätty listaan."));
-            msgBox.setStandardButtons(QMessageBox::Ok);
-            msgBox.exec();
+            text = trUtf8("Ohjelma on jo aiemmin lisätty katselulistaan.");
         }
     }
     else if (type == 2) { /* Ohjelma poistettu listasta. */
         if (ok) {
             fetchPlaylist(true);
-            QMessageBox msgBox(this);
-            msgBox.setWindowTitle(windowTitle());
-            msgBox.setIcon(QMessageBox::Information);
-            msgBox.setText(trUtf8("Ohjelma on poistettu listasta."));
-            msgBox.setStandardButtons(QMessageBox::Ok);
-            msgBox.exec();
+            text = trUtf8("Ohjelma on poistettu katselulistasta.");
         }
         else {
             stopLoadingAnimation();
-            QMessageBox msgBox(this);
-            msgBox.setWindowTitle(windowTitle());
-            msgBox.setIcon(QMessageBox::Information);
-            msgBox.setText(trUtf8("Ohjelman poistaminen epäonnistui."));
-            msgBox.setStandardButtons(QMessageBox::Ok);
-            msgBox.exec();
+            text = trUtf8("Ohjelman poistaminen epäonnistui.");
         }
     }
     else if (type == 3) { /* Ohjelma lisätty sarjoihin. */
         if (ok) {
             fetchSeasonPasses(true);
-            QMessageBox msgBox(this);
-            msgBox.setWindowTitle(windowTitle());
-            msgBox.setIcon(QMessageBox::Information);
-            msgBox.setText(trUtf8("Ohjelma on lisätty sarjoihin."));
-            msgBox.setStandardButtons(QMessageBox::Ok);
-            msgBox.exec();
+            text = trUtf8("Ohjelma on lisätty suosikkisarjoihin.");
         }
         else {
             stopLoadingAnimation();
-            QMessageBox msgBox(this);
-            msgBox.setWindowTitle(windowTitle());
-            msgBox.setIcon(QMessageBox::Information);
-            msgBox.setText(trUtf8("Ohjelma on jo aiemmin lisätty sarjoihin."));
-            msgBox.setStandardButtons(QMessageBox::Ok);
-            msgBox.exec();
+            text = trUtf8("Ohjelma on jo aiemmin lisätty suosikkisarjoihin.");
         }
     }
     else if (type == 4) { /* Ohjelma poistettu sarjoista. */
         if (ok) {
             fetchSeasonPasses(true);
-            QMessageBox msgBox(this);
-            msgBox.setWindowTitle(windowTitle());
-            msgBox.setIcon(QMessageBox::Information);
-            msgBox.setText(trUtf8("Ohjelma on poistettu sarjoista."));
-            msgBox.setStandardButtons(QMessageBox::Ok);
-            msgBox.exec();
+            text = trUtf8("Ohjelma on poistettu suosikkisarjoista.");
         }
         else {
             stopLoadingAnimation();
-            QMessageBox msgBox(this);
-            msgBox.setWindowTitle(windowTitle());
-            msgBox.setIcon(QMessageBox::Information);
-            msgBox.setText(trUtf8("Ohjelman poistaminen epäonnistui."));
-            msgBox.setStandardButtons(QMessageBox::Ok);
-            msgBox.exec();
+            text = trUtf8("Ohjelman poistaminen epäonnistui.");
         }
+    }
+
+    if (!text.isEmpty()) {
+        QMessageBox msgBox(this);
+        msgBox.setWindowTitle(windowTitle());
+        msgBox.setIcon(QMessageBox::Information);
+        msgBox.setText(text);
+        msgBox.setStandardButtons(QMessageBox::Ok);
+        msgBox.exec();
     }
 }
 

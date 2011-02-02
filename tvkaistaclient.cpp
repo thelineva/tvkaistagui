@@ -492,15 +492,19 @@ void TvkaistaClient::searchRequestFinished()
 void TvkaistaClient::playlistRequestFinished()
 {
     ProgrammeFeedParser parser;
+    bool ok = parser.parse(m_reply);
 
-    if (!parser.parse(m_reply)) {
+    if (!ok) {
         qWarning() << parser.lastError();
     }
 
     m_reply->deleteLater();
     m_reply = 0;
-    m_cache->savePlaylist(QDateTime::currentDateTime(), parser.programmes());
-    emit playlistFetched(parser.programmes());
+
+    if (ok) {
+        m_cache->savePlaylist(QDateTime::currentDateTime(), parser.programmes());
+        emit playlistFetched(parser.programmes());
+    }
 }
 
 void TvkaistaClient::playlistAddRequestFinished()
@@ -530,15 +534,19 @@ void TvkaistaClient::playlistRemoveRequestFinished()
 void TvkaistaClient::seasonPassListRequestFinished()
 {
     ProgrammeFeedParser parser;
+    bool ok = parser.parse(m_reply);
 
-    if (!parser.parse(m_reply)) {
+    if (!ok) {
         qWarning() << parser.lastError();
     }
 
     m_reply->deleteLater();
     m_reply = 0;
-    m_cache->saveSeasonPasses(QDateTime::currentDateTime(), parser.programmes());
-    emit seasonPassListFetched(parser.programmes());
+
+    if (ok) {
+        m_cache->saveSeasonPasses(QDateTime::currentDateTime(), parser.programmes());
+        emit seasonPassListFetched(parser.programmes());
+    }
 }
 
 void TvkaistaClient::seasonPassIndexRequestFinished()
@@ -548,23 +556,27 @@ void TvkaistaClient::seasonPassIndexRequestFinished()
     }
 
     ProgrammeFeedParser parser;
+    bool ok = parser.parse(m_reply);
 
-    if (!parser.parse(m_reply)) {
+    if (!ok) {
         qWarning() << parser.lastError();
-    }
-
-    QMap<QString, int> seasonPassMap;
-    QList<Programme> seasonPasses = parser.programmes();
-    int count = seasonPasses.size();
-
-    for (int i = 0; i < count; i++) {
-        Programme seasonPass = seasonPasses.at(i);
-        seasonPassMap.insert(seasonPass.title, seasonPass.id);
     }
 
     m_reply->deleteLater();
     m_reply = 0;
-    emit seasonPassIndexFetched(seasonPassMap);
+
+    if (ok) {
+        QMap<QString, int> seasonPassMap;
+        QList<Programme> seasonPasses = parser.programmes();
+        int count = seasonPasses.size();
+
+        for (int i = 0; i < count; i++) {
+            Programme seasonPass = seasonPasses.at(i);
+            seasonPassMap.insert(seasonPass.title, seasonPass.id);
+        }
+
+        emit seasonPassIndexFetched(seasonPassMap);
+    }
 }
 
 void TvkaistaClient::seasonPassAddRequestFinished()
