@@ -366,6 +366,10 @@ void DownloadTableModel::updateDownloadProgress()
         qint64 received = downloader->bytesReceived();
         qint64 total = downloader->bytesTotal();
 
+        if (received <= 0) {
+            continue;
+        }
+
         if (total <= 0) {
             download.description = formatBytes(received);
         }
