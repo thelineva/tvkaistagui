@@ -997,6 +997,7 @@ void MainWindow::addToPlaylist()
 
     ui->addToPlaylistPushButton->setEnabled(false);
     ui->actionAddToPlaylist->setEnabled(false);
+    startLoadingAnimation();
 }
 
 void MainWindow::addToSeasonPass()
@@ -1014,6 +1015,7 @@ void MainWindow::addToSeasonPass()
 
     ui->addToSeasonPassPushButton->setEnabled(false);
     ui->actionAddToSeasonPass->setEnabled(false);
+    startLoadingAnimation();
 }
 
 void MainWindow::copyMiroFeedUrl()
