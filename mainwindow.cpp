@@ -70,7 +70,7 @@ MainWindow::MainWindow(QWidget *parent) :
     m_loadLabel = new QLabel(this);
     m_loadLabel->setMinimumSize(47, 32);
     m_posterTimer = new QTimer(this);
-    m_posterTimer->setSingleShot(true);
+    m_posterTimer->setSingleShot(false);
     connect(m_posterTimer, SIGNAL(timeout()), SLOT(posterTimeout()));
     QAction *searchAction = new QAction(this);
     searchAction->setText(trUtf8("Hae"));
@@ -447,6 +447,7 @@ void MainWindow::programmeSelectionChanged()
     bool posterVisible = m_settings.value("posterVisible", true).toBool();
     m_settings.endGroup();
     m_posterImage = m_noPosterImage;
+    m_posterTimer->stop();
 
     if (m_currentProgramme.id >= 0 && (m_currentProgramme.flags & 0x08) == 0 && posterVisible) {
         if (m_client->isRequestUnfinished()) {
@@ -1287,6 +1288,12 @@ void MainWindow::editRequestFinished(int type, bool ok)
 
 void MainWindow::posterTimeout()
 {
+    if (m_client->isRequestUnfinished()) {
+        return;
+    }
+
+    m_posterTimer->stop();
+
     if (fetchPoster()) {
         updateDescription();
     }
