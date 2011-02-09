@@ -1885,9 +1885,22 @@ void MainWindow::startMediaPlayer(const QString &command, const QString &filenam
          deinterlaceOptions = QString();
     }
 
+    m_settings.beginGroup("client");
+    m_settings.beginGroup("proxy");
+    QString proxyHost = m_settings.value("host").toString();
+    int proxyPort = m_settings.value("port").toInt();
+    m_settings.endGroup();
+    m_settings.endGroup();
+    QString proxyOptions;
+
+    if (!proxyHost.isEmpty()) {
+        proxyOptions = QString("--http-proxy '%1:%2'").arg(proxyHost).arg(proxyPort);
+    }
+
     QString s = command;
     s.replace("%D", deinterlaceOptions);
     s.replace("%F", "'" + filename + "'");
+    s.replace("%P", proxyOptions);
 
     QStringList args = splitCommandLine(s);
     QString program = QDir::fromNativeSeparators(args.takeFirst());
