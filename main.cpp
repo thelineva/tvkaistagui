@@ -39,6 +39,10 @@ int main(int argc, char *argv[])
     QApplication app(argc, argv);
     app.setApplicationName("TVkaistaGUI");
 
+    QSettings settings(QSettings::IniFormat, QSettings::UserScope,
+                       QCoreApplication::applicationName(),
+                       QCoreApplication::applicationName());
+
     QStringList arguments = app.arguments();
     int count = arguments.size();
     bool invalidArgs = false;
@@ -50,6 +54,29 @@ int main(int argc, char *argv[])
 
         if (arg == "-d" || arg == "--debug") {
             qInstallMsgHandler(debugMessageHandler);
+        }
+        else if (arg == "-p" || arg == "--http-proxy") {
+            if (i + 1 >= count) {
+                invalidArgs = true;
+                continue;
+            }
+
+            QString proxyString = arguments.at(++i);
+            QString proxyHost = proxyString;
+            int proxyPort = 8080;
+            int pos = proxyString.lastIndexOf(':');
+
+            if (pos >= 0) {
+                proxyHost = proxyString.mid(0, pos);
+                proxyPort = proxyString.mid(pos + 1).toInt();
+            }
+
+            settings.beginGroup("client");
+            settings.beginGroup("proxy");
+            settings.setValue("host", proxyHost);
+            settings.setValue("port", proxyPort);
+            settings.endGroup();
+            settings.endGroup();
         }
         else {
             invalidArgs = true;
