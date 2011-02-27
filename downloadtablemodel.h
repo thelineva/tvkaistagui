@@ -50,7 +50,7 @@ public:
     bool save();
 
 signals:
-    void downloadFinished();
+    void downloadStatusChanged(int index);
 
 private slots:
     void updateDownloadProgress();

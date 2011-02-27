@@ -402,7 +402,7 @@ void DownloadTableModel::downloaderFinished()
                 m_downloads.replace(i, download);
                 QModelIndex modelIndex = index(i, 0, QModelIndex());
                 emit dataChanged(modelIndex, modelIndex);
-                emit downloadFinished();
+                emit downloadStatusChanged(i);
             }
             else {
                 running++;
@@ -423,13 +423,14 @@ void DownloadTableModel::networkError()
         FileDownload download = m_downloads.at(i);
 
         if (download.downloader != 0 && download.downloader->hasError()) {
+            download.description = download.downloader->lastError();
             download.downloader->deleteLater();
             download.downloader = 0;
-            download.description = download.downloader->lastError();
             download.status = 3;
             m_downloads.replace(i, download);
             QModelIndex modelIndex = index(i, 0, QModelIndex());
             emit dataChanged(modelIndex, modelIndex);
+            emit downloadStatusChanged(i);
         }
     }
 }

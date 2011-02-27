@@ -101,7 +101,7 @@ private slots:
     void seasonPassIndexFetched(const QMap<QString, int> &seasonPasses);
     void editRequestFinished(int type, bool ok);
     void posterTimeout();
-    void downloadFinished();
+    void downloadStatusChanged(int index);
     void networkError();
     void loginError();
     void streamNotFound();

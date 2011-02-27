@@ -193,7 +193,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(m_client, SIGNAL(networkError()), SLOT(networkError()));
     connect(m_client, SIGNAL(loginError()), SLOT(loginError()));
     connect(m_client, SIGNAL(streamNotFound()), SLOT(streamNotFound()));
-    connect(m_downloadTableModel, SIGNAL(downloadFinished()), SLOT(downloadFinished()));
+    connect(m_downloadTableModel, SIGNAL(downloadStatusChanged(int)), SLOT(downloadStatusChanged(int)));
 
     QAction *action = new QAction(this);
     action->setShortcut(Qt::Key_F2);
@@ -1300,9 +1300,11 @@ void MainWindow::posterTimeout()
     }
 }
 
-void MainWindow::downloadFinished()
+void MainWindow::downloadStatusChanged(int index)
 {
+    Q_UNUSED(index);
     ui->downloadsTableView->resizeRowsToContents();
+    downloadSelectionChanged();
 }
 
 void MainWindow::networkError()

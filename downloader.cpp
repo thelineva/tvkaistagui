@@ -151,7 +151,10 @@ void Downloader::replyFinished()
 {
     m_file.close();
     m_finished = true;
-    emit finished();
+
+    if (m_error.isEmpty()) {
+        emit finished();
+    }
 }
 
 void Downloader::replyDownloadProgress(qint64 bytesReceived, qint64 bytesTotal)
@@ -166,8 +169,8 @@ void Downloader::replyNetworkError(QNetworkReply::NetworkError error)
         return;
     }
 
-    abort();
     m_error = networkErrorString(error);
+    abort();
     emit networkError();
 }
 
