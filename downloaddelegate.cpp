@@ -43,7 +43,7 @@ void DownloadDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
 
     int status = index.data(Qt::UserRole + 1).toInt();
 
-    if (status == 0) {
+    if (status == 0 || status == 3) {
         painter->drawText(QRect(0, bounding.bottom() + 3, option.rect.width() - PADDING, INT_MAX),
                       Qt::AlignLeft | Qt::TextDontClip, index.data(Qt::UserRole + 3).toString(), &bounding);
     }
