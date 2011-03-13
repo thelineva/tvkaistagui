@@ -1195,6 +1195,7 @@ void MainWindow::searchResultsFetched(const QList<Programme> &programmes)
     else {
         m_searchResultsTableModel->setProgrammes(programmes);
         updateColumnSizes();
+        updateWindowTitle();
         ui->programmeTableView->setFocus();
         scrollProgrammes();
     }
