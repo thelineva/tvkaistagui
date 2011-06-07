@@ -160,7 +160,7 @@ void Downloader::replyFinished()
 void Downloader::replyDownloadProgress(qint64 bytesReceived, qint64 bytesTotal)
 {
     m_bytesReceived = m_byteOffset + bytesReceived;
-    m_bytesTotal = bytesTotal;
+    m_bytesTotal = m_byteOffset + bytesTotal;
 }
 
 void Downloader::replyNetworkError(QNetworkReply::NetworkError error)
