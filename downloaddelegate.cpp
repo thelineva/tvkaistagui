@@ -8,7 +8,9 @@ int DownloadDelegate::PADDING = 10;
 
 DownloadDelegate::DownloadDelegate(QWidget *parent) :
         QStyledItemDelegate(parent), m_parentWidget(parent),
-        m_pixmap(":/images/unfinished-16x16.png")
+        m_pixmap(":/images/unfinished-16x16.png"),
+        m_color1(220, 239, 255), m_color2(247, 255, 240),
+        m_color3(255, 240, 240), m_color4(230, 230, 230)
 {
 }
 
@@ -19,9 +21,44 @@ void DownloadDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
     titleFont.setBold(true);
     painter->save();
 
+    int status = index.data(Qt::UserRole + 1).toInt();
+
     if ((option.state & QStyle::State_Selected) > 0) {
         painter->fillRect(option.rect, option.palette.highlight());
         painter->setPen(QPen(option.palette.highlightedText(), 1.0));
+    }
+    else {
+        if (status == 1) {
+            painter->fillRect(option.rect, m_color1);
+        }
+        else if (status == 2) {
+            painter->fillRect(option.rect, m_color2);
+        }
+        else if (status == 3) {
+            painter->fillRect(option.rect, m_color3);
+        }
+        else if (status == 4) {
+            painter->fillRect(option.rect, m_color4);
+        }
+
+        painter->setPen(painter->pen().color().lighter(160));
+        painter->drawLine(option.rect.x(), option.rect.y() + option.rect.height() - 1,
+                          option.rect.width(), option.rect.y() + option.rect.height() - 1);
+        painter->setPen(QPen(option.palette.text(), 1.0));
+    }
+
+    if (status == 0) {
+        double progress = index.data(Qt::UserRole + 6).toDouble();
+        int ry = option.rect.y();
+        int width = qRound(option.rect.width() * progress);
+        int height = option.rect.height() - 1;
+
+        if ((option.state & QStyle::State_Selected) > 0) {
+            ry += height - 5;
+            height = 5;
+        }
+
+        painter->fillRect(option.rect.x(), ry, width, height, m_color1);
     }
 
     painter->translate(option.rect.x() + PADDING, option.rect.y() + PADDING);
@@ -41,8 +78,6 @@ void DownloadDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
     painter->drawText(QRect(0, y, option.rect.width() - PADDING, INT_MAX),
                       Qt::AlignLeft | Qt::TextDontClip, index.data(Qt::UserRole + 2).toString(), &bounding);
 
-    int status = index.data(Qt::UserRole + 1).toInt();
-
     if (status == 0 || status == 3) {
         painter->drawText(QRect(0, bounding.bottom() + 3, option.rect.width() - PADDING, INT_MAX),
                       Qt::AlignLeft | Qt::TextDontClip, index.data(Qt::UserRole + 3).toString(), &bounding);
@@ -53,11 +88,6 @@ void DownloadDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
         if (x > bounding.right()) {
             painter->drawPixmap(x, y + (bounding.height() - 16) / 2, m_pixmap);
         }
-    }
-
-    if ((option.state & QStyle::State_Selected) == 0) {
-        painter->setPen(painter->pen().color().lighter(160));
-        painter->drawLine(-PADDING, bounding.bottom() + 10, option.rect.width() - PADDING, bounding.bottom() + 10);
     }
 
     painter->restore();
@@ -74,5 +104,5 @@ QSize DownloadDelegate::sizeHint(const QStyleOptionViewItem &option, const QMode
     width = qMax(width, option.fontMetrics.width(index.data(Qt::UserRole + 1).toString()) + 2 * PADDING);
     int status = index.data(Qt::UserRole + 1).toInt();
     int lineCount = (status == 0 || status == 3) ? 3 : 2;
-    return QSize(width, option.fontMetrics.height() * lineCount + 23);
+    return QSize(width, (option.fontMetrics.height() + 3) * lineCount + 2 * PADDING);
 }

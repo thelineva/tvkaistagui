@@ -11,9 +11,11 @@
 #include "downloadtablemodel.h"
 
 DownloadTableModel::DownloadTableModel(QSettings *settings, QObject *parent) :
-    QAbstractTableModel(parent), m_settings(settings), m_timer(new QTimer(this))
+    QAbstractTableModel(parent), m_settings(settings), m_timer(new QTimer(this)),
+    m_fileSystemWatcher(new QFileSystemWatcher(this))
 {
     connect(m_timer, SIGNAL(timeout()), SLOT(updateDownloadProgress()));
+    connect(m_fileSystemWatcher, SIGNAL(fileChanged(QString)), SLOT(fileChanged(QString)));
 }
 
 int DownloadTableModel::rowCount(const QModelIndex &parent) const
@@ -56,6 +58,9 @@ QVariant DownloadTableModel::data(const QModelIndex &index, int role) const
 
     case Qt::UserRole + 5:
         return download.format;
+
+    case Qt::UserRole + 6:
+        return download.progress;
     }
 
     return QVariant();
@@ -283,16 +288,6 @@ bool DownloadTableModel::load()
         download.channelName = attrs.value("channel").toString();
         download.format = attrs.value("format").toString();
 
-        if (download.status == 3) {
-            download.description = trUtf8("Epäonnistunut");
-        }
-        else if (download.status == 2) {
-            download.description = trUtf8("Keskeytetty");
-        }
-        else if (download.status == 1) {
-            download.description = trUtf8("Valmis");
-        }
-
         bool intOk;
         int programmeId = attrs.value("programmeId").toString().toInt(&intOk);
         download.programmeId = intOk ? programmeId : -1;
@@ -304,6 +299,28 @@ bool DownloadTableModel::load()
             else if (reader.name() == "filename") {
                 download.filename = reader.readElementText();
             }
+        }
+
+        if (download.status == 1 && !download.filename.isEmpty()) {
+            if (QFile(download.filename).exists()) {
+                m_fileSystemWatcher->addPath(download.filename);
+            }
+            else {
+                download.status = 4;
+            }
+        }
+
+        if (download.status == 4) {
+            download.description = trUtf8("Poistettu");
+        }
+        else if (download.status == 3) {
+            download.description = trUtf8("Epäonnistunut");
+        }
+        else if (download.status == 2) {
+            download.description = trUtf8("Keskeytetty");
+        }
+        else if (download.status == 1) {
+            download.description = trUtf8("Valmis");
         }
 
         int index = m_downloads.size();
@@ -372,10 +389,12 @@ void DownloadTableModel::updateDownloadProgress()
 
         if (total <= 0) {
             download.description = formatBytes(received);
+            download.progress = 0.0;
         }
         else {
+            download.progress = received / (double)total;
             download.description = trUtf8("%1 / %2 (%3 %)").arg(formatBytes(received), formatBytes(total)).arg(
-                                                                 qRound(received / (double)total * 100));
+                                                                 qRound(download.progress * 100));
         }
 
         m_downloads.replace(i, download);
@@ -400,6 +419,7 @@ void DownloadTableModel::downloaderFinished()
                 download.status = 1;
                 download.description = trUtf8("Valmis");
                 m_downloads.replace(i, download);
+                m_fileSystemWatcher->addPath(download.filename);
                 QModelIndex modelIndex = index(i, 0, QModelIndex());
                 emit dataChanged(modelIndex, modelIndex);
                 emit downloadStatusChanged(i);
@@ -435,6 +455,24 @@ void DownloadTableModel::networkError()
     }
 }
 
+void DownloadTableModel::fileChanged(const QString &path)
+{
+    int count = m_downloads.size();
+
+    for (int i = 0; i < count; i++) {
+        FileDownload download = m_downloads.at(i);
+
+        if (download.status == 1 && download.filename == path &&
+                !QFile(download.filename).exists()) {
+            download.status = 4;
+            m_downloads.replace(i, download);
+            QModelIndex modelIndex = index(i, 0, QModelIndex());
+            emit dataChanged(modelIndex, modelIndex);
+            emit downloadStatusChanged(i);
+        }
+    }
+}
+
 int DownloadTableModel::tryResumeDownload(int programmeId, const QUrl &url)
 {
     int count = m_downloads.size();
@@ -443,6 +481,7 @@ int DownloadTableModel::tryResumeDownload(int programmeId, const QUrl &url)
         FileDownload download = m_downloads.at(i);
 
         if (download.programmeId == programmeId) {
+            m_fileSystemWatcher->removePath(download.filename);
             Downloader *downloader = new Downloader(m_client, this);
             downloader->setFilename(download.filename);
             downloader->setFilenameFromReply(false);

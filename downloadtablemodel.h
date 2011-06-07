@@ -2,6 +2,7 @@
 #define DOWNLOADTABLEMODEL_H
 
 #include <QAbstractTableModel>
+#include <QFileSystemWatcher>
 #include <QDateTime>
 #include <QUrl>
 #include "programme.h"
@@ -20,7 +21,16 @@ struct FileDownload
     QString format;
     QString channelName;
     int programmeId;
+
+    /**
+      * 0 = lataus kesken
+      * 1 = valmis
+      * 2 = keskeytetty
+      * 3 = virhe
+      * 4 = videotiedosto poistettu
+     */
     int status;
+    double progress;
     Downloader *downloader;
 };
 
@@ -56,6 +66,7 @@ private slots:
     void updateDownloadProgress();
     void downloaderFinished();
     void networkError();
+    void fileChanged(const QString &path);
 
 private:
     int tryResumeDownload(int programmeId, const QUrl &url);
@@ -66,6 +77,7 @@ private:
     TvkaistaClient *m_client;
     QList<FileDownload> m_downloads;
     QTimer *m_timer;
+    QFileSystemWatcher *m_fileSystemWatcher;
 };
 
 #endif // DOWNLOADTABLEMODEL_H

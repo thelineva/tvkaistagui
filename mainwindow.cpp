@@ -498,10 +498,14 @@ void MainWindow::downloadSelectionChanged()
         for (int i = 0; i < indexes.size(); i++) {
             int status = m_downloadTableModel->status(indexes.at(i).row());
 
+            if (status == 4) {
+                playEnabled = false;
+            }
+
             if (status == 0) {
                 abortEnabled = true;
             }
-            else if ((status == 2 || status == 3) && indexes.size() == 1) {
+            else if ((status == 2 || status == 3 || status == 4) && indexes.size() == 1) {
                 resumeEnabled = m_downloadTableModel->programmeId(indexes.at(i).row()) >= 0;
             }
         }
@@ -1728,7 +1732,7 @@ void MainWindow::resumeDownloadAt(int row)
     int status = m_downloadTableModel->status(row);
     int programmeId = m_downloadTableModel->programmeId(row);
 
-    if ((status != 2 && status != 3) || programmeId < 0) {
+    if ((status != 2 && status != 3 && status != 4) || programmeId < 0) {
         return;
     }
 

@@ -16,6 +16,10 @@ public:
 private:
     QWidget *m_parentWidget;
     QPixmap m_pixmap;
+    QColor m_color1;
+    QColor m_color2;
+    QColor m_color3;
+    QColor m_color4;
     static int PADDING;
 };
 
