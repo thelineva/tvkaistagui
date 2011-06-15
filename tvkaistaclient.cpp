@@ -244,7 +244,7 @@ void TvkaistaClient::sendStreamRequest(const Programme &programme)
 void TvkaistaClient::sendSearchRequest(const QString &phrase)
 {
     abortRequest();
-    QString urlString = QString("http://services.tvkaista.fi/feedbeta/search/title/%1/flv.mediarss").arg(phrase);
+    QString urlString = QString("http://www.tvkaista.fi/feed/search/title/%1/flv.mediarss").arg(phrase);
     qDebug() << "GET" << urlString;
     QNetworkRequest request = QNetworkRequest(QUrl(urlString));
     m_reply = m_networkAccessManager->get(request);
@@ -256,7 +256,7 @@ void TvkaistaClient::sendSearchRequest(const QString &phrase)
 void TvkaistaClient::sendPlaylistRequest()
 {
     abortRequest();
-    QString urlString = "http://services.tvkaista.fi/feedbeta/playlist/standard.mediarss";
+    QString urlString = "http://www.tvkaista.fi/feed/playlist/standard.mediarss";
     qDebug() << "GET" << urlString;
     QNetworkRequest request = QNetworkRequest(QUrl(urlString));
     m_reply = m_networkAccessManager->get(request);
@@ -270,7 +270,7 @@ void TvkaistaClient::sendPlaylistAddRequest(int programmeId)
     abortRequest();
     QByteArray data("id=");
     data.append(QString::number(programmeId));
-    QString urlString = "http://services.tvkaista.fi/feedbeta/playlist/";
+    QString urlString = "http://www.tvkaista.fi/feed/playlist/";
     qDebug() << "POST" << urlString << data;
     m_reply = m_networkAccessManager->post(QNetworkRequest(QUrl(urlString)), data);
     m_requestType = 9;
@@ -281,7 +281,7 @@ void TvkaistaClient::sendPlaylistAddRequest(int programmeId)
 void TvkaistaClient::sendPlaylistRemoveRequest(int programmeId)
 {
     abortRequest();
-    QString urlString = QString("http://services.tvkaista.fi/feedbeta/playlist/%1/").arg(programmeId);
+    QString urlString = QString("http://www.tvkaista.fi/feed/playlist/%1/").arg(programmeId);
     qDebug() << "DELETE" << urlString;
     QNetworkRequest request = QNetworkRequest(QUrl(urlString));
     m_reply = m_networkAccessManager->deleteResource(request);
@@ -293,7 +293,7 @@ void TvkaistaClient::sendPlaylistRemoveRequest(int programmeId)
 void TvkaistaClient::sendSeasonPassListRequest()
 {
     abortRequest();
-    QString urlString = "http://services.tvkaista.fi/feedbeta/seasonpasses/*/standard.mediarss";
+    QString urlString = "http://www.tvkaista.fi/feed/seasonpasses/*/standard.mediarss";
     qDebug() << "GET" << urlString;
     QNetworkRequest request = QNetworkRequest(QUrl(urlString));
     m_reply = m_networkAccessManager->get(request);
@@ -305,7 +305,7 @@ void TvkaistaClient::sendSeasonPassListRequest()
 void TvkaistaClient::sendSeasonPassIndexRequest()
 {
     abortRequest();
-    QString urlString = "http://services.tvkaista.fi/feedbeta/seasonpasses/";
+    QString urlString = "http://www.tvkaista.fi/feed/seasonpasses/";
     qDebug() << "GET" << urlString;
     QNetworkRequest request = QNetworkRequest(QUrl(urlString));
     m_reply = m_networkAccessManager->get(request);
@@ -319,7 +319,7 @@ void TvkaistaClient::sendSeasonPassAddRequest(int programmeId)
     abortRequest();
     QByteArray data("id=");
     data.append(QString::number(programmeId));
-    QString urlString = "http://services.tvkaista.fi/feedbeta/seasonpasses/";
+    QString urlString = "http://www.tvkaista.fi/feed/seasonpasses/";
     qDebug() << "POST" << urlString << data;
     m_reply = m_networkAccessManager->post(QNetworkRequest(QUrl(urlString)), data);
     m_requestType = 13;
@@ -330,7 +330,7 @@ void TvkaistaClient::sendSeasonPassAddRequest(int programmeId)
 void TvkaistaClient::sendSeasonPassRemoveRequest(int seasonPassId)
 {
     abortRequest();
-    QString urlString = QString("http://services.tvkaista.fi/feedbeta/seasonpasses/%1/").arg(seasonPassId);
+    QString urlString = QString("http://www.tvkaista.fi/feed/seasonpasses/%1/").arg(seasonPassId);
     qDebug() << "DELETE" << urlString;
     QNetworkRequest request = QNetworkRequest(QUrl(urlString));
     m_reply = m_networkAccessManager->deleteResource(request);
