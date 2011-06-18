@@ -17,6 +17,7 @@
 #include "downloader.h"
 #include "downloaddelegate.h"
 #include "downloadtablemodel.h"
+#include "historymanager.h"
 #include "programmefeedparser.h"
 #include "programmetablemodel.h"
 #include "tvkaistaclient.h"
@@ -31,11 +32,12 @@ MainWindow::MainWindow(QWidget *parent) :
                    QCoreApplication::applicationName(),
                    QCoreApplication::applicationName()),
     m_client(new TvkaistaClient(this)),
+    m_historyManager(new HistoryManager(&m_settings)),
     m_downloadTableModel(new DownloadTableModel(&m_settings, this)),
-    m_programmeListTableModel(new ProgrammeTableModel(false, this)),
-    m_searchResultsTableModel(new ProgrammeTableModel(true, this)),
-    m_playlistTableModel(new ProgrammeTableModel(true, this)),
-    m_seasonPassesTableModel(new ProgrammeTableModel(true, this)),
+    m_programmeListTableModel(new ProgrammeTableModel(m_historyManager, false, this)),
+    m_searchResultsTableModel(new ProgrammeTableModel(m_historyManager, true, this)),
+    m_playlistTableModel(new ProgrammeTableModel(m_historyManager, true, this)),
+    m_seasonPassesTableModel(new ProgrammeTableModel(m_historyManager, true, this)),
     m_currentTableModel(m_programmeListTableModel),
     m_cache(new Cache), m_settingsDialog(0), m_screenshotWindow(0),
     m_currentChannelId(-1), m_searchIcon(":/images/list-22x22.png"),
@@ -162,6 +164,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionAddToSeasonPass, SIGNAL(triggered()), SLOT(addToSeasonPass()));
     connect(ui->actionAddToPlaylist, SIGNAL(triggered()), SLOT(addToPlaylist()));
     connect(ui->actionPlayFile, SIGNAL(triggered()), SLOT(playDownloadedFile()));
+    connect(ui->actionRemoveHistoryEntry, SIGNAL(triggered()), SLOT(removeHistoryEntry()));
     connect(ui->watchPushButton, SIGNAL(clicked()), SLOT(watchProgramme()));
     connect(ui->downloadPushButton, SIGNAL(clicked()), SLOT(downloadProgramme()));
     connect(ui->screenshotsPushButton, SIGNAL(clicked()), SLOT(openScreenshotWindow()));
@@ -276,6 +279,7 @@ MainWindow::MainWindow(QWidget *parent) :
     m_formatComboBox->setCurrentIndex(format);
     loadClientSettings();
     setFormat(format);
+    m_historyManager->load();
 
     m_settings.beginGroup("mainWindow");
     restoreGeometry(m_settings.value("geometry").toByteArray());
@@ -357,6 +361,7 @@ MainWindow::MainWindow(QWidget *parent) :
 MainWindow::~MainWindow()
 {
     delete ui;
+    delete m_historyManager;
 }
 
 void MainWindow::closeEvent(QCloseEvent *e)
@@ -545,6 +550,11 @@ void MainWindow::programmeMenuRequested(const QPoint &point)
     menu.addSeparator();
     menu.addAction(ui->actionAddToPlaylist);
     menu.addAction(ui->actionAddToSeasonPass);
+
+    if (m_historyManager->containsProgramme(m_currentProgramme.id)) {
+        menu.addAction(ui->actionRemoveHistoryEntry);
+    }
+
     menu.addSeparator();
     menu.addAction(ui->actionRefresh);
 
@@ -611,6 +621,7 @@ void MainWindow::watchProgramme()
         QString urlString = QString("http://www.tvkaista.fi/embed/%1")
                             .arg(m_currentProgramme.id);
 
+        addHistoryEntry(m_currentProgramme.id);
         startFlashStream(QUrl(urlString));
         return;
     }
@@ -683,6 +694,7 @@ void MainWindow::settingsAccepted()
         fetchChannels(true);
     }
 
+    m_currentTableModel->updateHistory();
     m_settingsDialog->deleteLater();
     m_settingsDialog = 0;
 }
@@ -759,6 +771,7 @@ void MainWindow::playDownloadedFile()
     }
 
     int row = indexes.at(0).row();
+    addHistoryEntry(m_downloadTableModel->programmeId(row));
     QString filename = QDir::toNativeSeparators(m_downloadTableModel->filename(row));
     int format = m_downloadTableModel->videoFormat(row);
     m_settings.beginGroup("mediaPlayer");
@@ -1033,6 +1046,17 @@ void MainWindow::addToSeasonPass()
     startLoadingAnimation();
 }
 
+void MainWindow::removeHistoryEntry()
+{
+    if (m_currentProgramme.id < 0) {
+        return;
+    }
+
+    m_historyManager->removeEntry(m_currentProgramme.id);
+    m_historyManager->save();
+    m_currentTableModel->updateHistory();
+}
+
 void MainWindow::copyMiroFeedUrl()
 {
     QString filename;
@@ -1176,6 +1200,7 @@ void MainWindow::streamUrlFetched(const Programme &programme, int format, const 
         downloadSelectionChanged();
     }
     else {
+        addHistoryEntry(programme.id);
         m_settings.beginGroup("mediaPlayer");
         QString command = m_settings.value("stream").toString();
         m_settings.endGroup();
@@ -1804,6 +1829,13 @@ void MainWindow::stopLoadingAnimation()
     m_loadMovie->stop();
     m_loadLabel->setMovie(0);
     m_loadLabel->setText(" ");
+}
+
+void MainWindow::addHistoryEntry(int programmeId)
+{
+    m_historyManager->addEntry(programmeId);
+    m_historyManager->save();
+    m_currentTableModel->updateHistory();
 }
 
 void MainWindow::addBorderToPoster()

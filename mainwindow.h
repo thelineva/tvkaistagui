@@ -17,6 +17,7 @@ class QToolButton;
 class QSignalMapper;
 class Cache;
 class DownloadTableModel;
+class HistoryManager;
 class ProgrammeFeedParser;
 class ProgrammeTableModel;
 class ScreenshotWindow;
@@ -88,6 +89,7 @@ private slots:
     void setFocusToDownloadsList();
     void addToPlaylist();
     void addToSeasonPass();
+    void removeHistoryEntry();
     void copyMiroFeedUrl();
     void copyItunesFeedUrl();
     void setCurrentServer(int index);
@@ -128,6 +130,7 @@ private:
     void scrollProgrammes();
     void startLoadingAnimation();
     void stopLoadingAnimation();
+    void addHistoryEntry(int programmeId);
     void addBorderToPoster();
     void setSortKeyToModel(const QString &sortKey, ProgrammeTableModel *model);
     QString sortKeyFromModel(ProgrammeTableModel *model);
@@ -144,6 +147,7 @@ private:
     QToolButton *m_searchToolButton;
     QSettings m_settings;
     TvkaistaClient *m_client;
+    HistoryManager *m_historyManager;
     DownloadTableModel *m_downloadTableModel;
     ProgrammeTableModel *m_programmeListTableModel;
     ProgrammeTableModel *m_searchResultsTableModel;

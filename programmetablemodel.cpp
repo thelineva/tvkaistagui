@@ -1,8 +1,11 @@
 #include <QDebug>
+#include "historymanager.h"
 #include "programmetablemodel.h"
 
-ProgrammeTableModel::ProgrammeTableModel(bool detailsVisible, QObject *parent) :
-    QAbstractTableModel(parent), m_detailsVisible(detailsVisible),
+ProgrammeTableModel::ProgrammeTableModel(HistoryManager *historyManager,
+                                         bool detailsVisible, QObject *parent) :
+    QAbstractTableModel(parent), m_historyManager(historyManager),
+    m_detailsVisible(detailsVisible),
     m_format(3), m_flagMask(0x08), m_sortKey(0), m_descending(false)
 {
 }
@@ -77,6 +80,10 @@ QVariant ProgrammeTableModel::data(const QModelIndex &index, int role) const
 
         if ((programme.flags & m_flagMask) > 0 || m_removedRows.contains(row)) {
             return Qt::darkGray;
+        }
+
+        if (m_historyManager->containsProgramme(programme.id)) {
+            return Qt::darkMagenta;
         }
     }
 
@@ -320,4 +327,12 @@ int ProgrammeTableModel::defaultProgrammeIndex() const
     }
 
     return index;
+}
+
+void ProgrammeTableModel::updateHistory()
+{
+    if (!m_programmes.isEmpty()) {
+        emit dataChanged(index(0, 0, QModelIndex()),
+                         index(m_programmes.size() - 1, 0, QModelIndex()));
+    }
 }

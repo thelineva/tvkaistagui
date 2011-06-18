@@ -25,7 +25,9 @@ SOURCES += main.cpp \
     aboutdialog.cpp \
     screenshotwindow.cpp \
     thumbnail.cpp \
-    texteditordialog.cpp
+    texteditordialog.cpp \
+    historyentry.cpp \
+    historymanager.cpp
 HEADERS += mainwindow.h \
     tvkaistaclient.h \
     channelfeedparser.h \
@@ -43,7 +45,9 @@ HEADERS += mainwindow.h \
     aboutdialog.h \
     screenshotwindow.h \
     thumbnail.h \
-    texteditordialog.h
+    texteditordialog.h \
+    historyentry.h \
+    historymanager.h
 FORMS += mainwindow.ui \
     settingsdialog.ui \
     aboutdialog.ui \

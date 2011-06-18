@@ -5,11 +5,14 @@
 #include <QSet>
 #include "programme.h"
 
+class QSettings;
+class HistoryManager;
+
 class ProgrammeTableModel : public QAbstractTableModel
 {
     Q_OBJECT
 public:
-    ProgrammeTableModel(bool detailsVisible, QObject *parent = 0);
+    ProgrammeTableModel(HistoryManager *historyManager, bool detailsVisible, QObject *parent = 0);
     int rowCount(const QModelIndex &parent) const;
     int columnCount(const QModelIndex &parent) const;
     QVariant data(const QModelIndex &index, int role) const;
@@ -30,8 +33,10 @@ public:
     QString infoText() const;
     Programme programme(int index) const;
     int defaultProgrammeIndex() const;
+    void updateHistory();
 
 private:
+    HistoryManager *m_historyManager;
     QList<Programme> m_programmes;
     QSet<int> m_removedRows;
     QString m_infoText;

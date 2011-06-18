@@ -70,15 +70,6 @@
           <attribute name="verticalHeaderVisible">
            <bool>false</bool>
           </attribute>
-          <attribute name="verticalHeaderVisible">
-           <bool>false</bool>
-          </attribute>
-          <attribute name="horizontalHeaderStretchLastSection">
-           <bool>true</bool>
-          </attribute>
-          <attribute name="horizontalHeaderVisible">
-           <bool>false</bool>
-          </attribute>
          </widget>
         </item>
        </layout>
@@ -238,7 +229,7 @@
      <x>0</x>
      <y>0</y>
      <width>1120</width>
-     <height>25</height>
+     <height>29</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuProgramme">
@@ -368,15 +359,6 @@
         <bool>true</bool>
        </attribute>
        <attribute name="verticalHeaderVisible">
-        <bool>false</bool>
-       </attribute>
-       <attribute name="verticalHeaderVisible">
-        <bool>false</bool>
-       </attribute>
-       <attribute name="horizontalHeaderStretchLastSection">
-        <bool>true</bool>
-       </attribute>
-       <attribute name="horizontalHeaderVisible">
         <bool>false</bool>
        </attribute>
       </widget>
@@ -1084,6 +1066,11 @@
   <action name="actionResumeDownload">
    <property name="text">
     <string>&amp;Jatka lataamista</string>
+   </property>
+  </action>
+  <action name="actionRemoveHistoryEntry">
+   <property name="text">
+    <string>Merkitse ei-katsotuksi</string>
    </property>
   </action>
  </widget>
