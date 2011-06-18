@@ -147,7 +147,7 @@ void TvkaistaClient::sendLoginRequest()
 void TvkaistaClient::sendChannelRequest()
 {
     abortRequest();
-    QString urlString = "http://www.tvkaista.fi/feedbeta/channels/";
+    QString urlString = "http://www.tvkaista.fi/feed/channels/";
     qDebug() << "GET" << urlString;
     QUrl url(urlString);
     QNetworkRequest request(url);
@@ -186,7 +186,7 @@ void TvkaistaClient::sendPosterRequest(const Programme &programme)
 
 QNetworkReply* TvkaistaClient::sendDetailedFeedRequest(const Programme &programme)
 {
-    QString urlString = QString("http://www.tvkaista.fi/feedbeta/programs/%1/detailed.mediarss").arg(programme.id);
+    QString urlString = QString("http://www.tvkaista.fi/feed/programs/%1/detailed.mediarss").arg(programme.id);
     qDebug() << "GET" << urlString;
     QUrl url(urlString);
     QNetworkRequest request(url);
