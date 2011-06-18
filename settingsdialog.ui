@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>470</width>
-    <height>465</height>
+    <height>513</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -225,7 +225,10 @@
          <item row="0" column="0">
           <widget class="QLabel" name="fontSizeLabel">
            <property name="text">
-            <string>Tekstin koko</string>
+            <string>&amp;Tekstin koko</string>
+           </property>
+           <property name="buddy">
+            <cstring>fontSizeComboBox</cstring>
            </property>
           </widget>
          </item>
@@ -235,7 +238,10 @@
          <item row="1" column="0">
           <widget class="QLabel" name="doubleClickLabel">
            <property name="text">
-            <string>Kaksoisklikattaessa</string>
+            <string>K&amp;aksoisklikattaessa</string>
+           </property>
+           <property name="buddy">
+            <cstring>doubleClickComboBox</cstring>
            </property>
           </widget>
          </item>
@@ -249,12 +255,36 @@
          <item>
           <widget class="QCheckBox" name="posterCheckBox">
            <property name="text">
-            <string>Näytetään kuvakaappaus ohjelmista</string>
+            <string>Näytetään &amp;kuvakaappaus ohjelmista</string>
            </property>
           </widget>
          </item>
          <item>
           <spacer name="horizontalSpacer">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_8">
+         <item>
+          <widget class="QCheckBox" name="deleteFromDiskCheckBox">
+           <property name="text">
+            <string>&amp;Poista videotiedosto, kun tallenne poistetaan latauslistasta</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_3">
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
            </property>
@@ -553,8 +583,8 @@
   <tabstop>downloadDirLineEdit</tabstop>
   <tabstop>downloadDirToolButton</tabstop>
   <tabstop>filenameFormatLineEdit</tabstop>
-  <tabstop>buttonBox</tabstop>
   <tabstop>tabWidget</tabstop>
+  <tabstop>buttonBox</tabstop>
  </tabstops>
  <resources/>
  <connections>

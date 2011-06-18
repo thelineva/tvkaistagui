@@ -9,7 +9,8 @@
 #include "ui_settingsdialog.h"
 
 SettingsDialog::SettingsDialog(QSettings *settings, QWidget *parent) :
-    QDialog(parent), ui(new Ui::SettingsDialog), m_settings(settings)
+    QDialog(parent), ui(new Ui::SettingsDialog), m_settings(settings),
+    m_usernameChanged(false)
 {
     ui->setupUi(this);
     connect(ui->buttonBox, SIGNAL(accepted()), SLOT(acceptChanges()));
@@ -164,6 +165,7 @@ void SettingsDialog::loadSettings()
     }
 
     ui->posterCheckBox->setChecked(m_settings->value("posterVisible", true).toBool());
+    ui->deleteFromDiskCheckBox->setChecked(m_settings->value("deleteFromDisk", false).toBool());
     m_settings->endGroup();
 
     m_settings->beginGroup("downloads");
@@ -235,6 +237,7 @@ void SettingsDialog::saveSettings()
     }
 
     m_settings->setValue("posterVisible", ui->posterCheckBox->isChecked());
+    m_settings->setValue("deleteFromDisk", ui->deleteFromDiskCheckBox->isChecked());
     m_settings->endGroup();
 
     m_settings->beginGroup("downloads");

@@ -52,6 +52,7 @@ public:
     void abortAllDownloads();
     bool hasUnfinishedDownloads() const;
     void removeDownload(int index);
+    QString title(int index) const;
     QString filename(int index) const;
     int status(int index) const;
     int videoFormat(int index) const;

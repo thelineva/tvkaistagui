@@ -742,6 +742,36 @@ void MainWindow::resumeDownload()
 void MainWindow::removeDownload()
 {
     QModelIndexList indexes = ui->downloadsTableView->selectionModel()->selectedRows(0);
+
+    if (indexes.isEmpty()) {
+        return;
+    }
+
+    m_settings.beginGroup("mainWindow");
+    bool deleteFromDisk = m_settings.value("deleteFromDisk", false).toBool();
+    m_settings.endGroup();
+
+    if (deleteFromDisk) {
+        QString text;
+
+        if (indexes.size() == 1) {
+            text = trUtf8("Poistetaanko tallenne %1?").arg(m_downloadTableModel->title(indexes.first().row()));
+        }
+        else {
+            text = trUtf8("Poistetaanko %1 tallennetta?").arg(indexes.size());
+        }
+
+        QMessageBox msgBox(this);
+        msgBox.setWindowTitle(windowTitle());
+        msgBox.setIcon(QMessageBox::Question);
+        msgBox.setText(text);
+        msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+
+        if (msgBox.exec() == QMessageBox::No) {
+            return;
+        }
+    }
+
     QList<int> rows;
 
     for (int i = 0; i < indexes.size(); i++) {
@@ -751,7 +781,16 @@ void MainWindow::removeDownload()
     qSort(rows);
 
     for (int i = rows.size() - 1; i >= 0; i--) {
+        QString filename = m_downloadTableModel->filename(rows.at(i));
         m_downloadTableModel->removeDownload(rows.at(i));
+
+        if (deleteFromDisk) {
+            QFile file(filename);
+
+            if (file.exists() && !file.remove()) {
+                qWarning() << file.errorString();
+            }
+        }
     }
 
     ui->downloadsTableView->resizeColumnToContents(0);

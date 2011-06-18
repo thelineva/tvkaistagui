@@ -229,6 +229,11 @@ void DownloadTableModel::removeDownload(int index)
     }
 }
 
+QString DownloadTableModel::title(int index) const
+{
+    return m_downloads.at(index).title;
+}
+
 QString DownloadTableModel::filename(int index) const
 {
     FileDownload download = m_downloads.at(index);
