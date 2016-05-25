@@ -272,7 +272,10 @@ void TvkaistaClient::sendPlaylistAddRequest(int programmeId)
     data.append(QString::number(programmeId));
     QString urlString = "http://www.tvkaista.fi/feed/playlist/";
     qDebug() << "POST" << urlString << data;
-    m_reply = m_networkAccessManager->post(QNetworkRequest(QUrl(urlString)), data);
+    QUrl url(urlString);
+    QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
+    m_reply = m_networkAccessManager->post(request, data);
     m_requestType = 9;
     connect(m_reply, SIGNAL(error(QNetworkReply::NetworkError)), SLOT(requestNetworkError(QNetworkReply::NetworkError)));
     connect(m_reply, SIGNAL(finished()), SLOT(playlistAddRequestFinished()));
@@ -321,7 +324,10 @@ void TvkaistaClient::sendSeasonPassAddRequest(int programmeId)
     data.append(QString::number(programmeId));
     QString urlString = "http://www.tvkaista.fi/feed/seasonpasses/";
     qDebug() << "POST" << urlString << data;
-    m_reply = m_networkAccessManager->post(QNetworkRequest(QUrl(urlString)), data);
+    QUrl url(urlString);
+    QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
+    m_reply = m_networkAccessManager->post(request, data);
     m_requestType = 13;
     connect(m_reply, SIGNAL(error(QNetworkReply::NetworkError)), SLOT(requestNetworkError(QNetworkReply::NetworkError)));
     connect(m_reply, SIGNAL(finished()), SLOT(seasonPassAddRequestFinished()));
@@ -349,7 +355,10 @@ void TvkaistaClient::frontPageRequestFinished()
     data.append("&rememberme=unlessnot&action=login");
     QString urlString = "http://www.tvkaista.fi/login/";
     qDebug() << "POST" << urlString;
-    m_reply = m_networkAccessManager->post(QNetworkRequest(QUrl(urlString)), data);
+    QUrl url(urlString);
+    QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
+    m_reply = m_networkAccessManager->post(request, data);
     m_requestType = 2;
     connect(m_reply, SIGNAL(error(QNetworkReply::NetworkError)), SLOT(requestNetworkError(QNetworkReply::NetworkError)));
     connect(m_reply, SIGNAL(finished()), SLOT(loginRequestFinished()));
